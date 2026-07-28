@@ -135,6 +135,44 @@ To see the no-IdP path instead, stop the demo and run
 Switching either the demo or a stub-mode run to real Defra ID (CPDEV) only
 ever requires environment variable changes — no code changes.
 
+### Adding a new auth provider
+
+Auth is layered per `specs/003-auth-refactor.md` §2 so a second identity
+source (e.g. Entra ID for internal staff, or a non-OIDC mechanism like a
+magic link) never touches `src/routes/`, `src/auth/service.js`, or the
+existing providers. Adding one touches only:
+
+1. **A new `src/auth/providers/<name>/` folder** implementing the
+   `AuthProvider` interface (`specs/003-auth-refactor.md` §2.3): `name`,
+   `enabled(request)`, `beginLogin(request)`, `completeLogin(request)`,
+   `logoutRedirectUrl({ idToken, request })`, `extraRoutes()`. Reuse
+   `src/auth/clients/oidc/` for any OIDC-based provider (discovery, token
+   exchange, JWKS verification, PKCE); a non-OIDC provider only needs
+   `src/auth/core/` (session, guards, audit, return-to, random tokens).
+2. **One entry in `src/auth/providers/registry.js`** — add the provider to
+   the `PROVIDERS` map; `enabledProviders()` and `service.js` pick it up
+   automatically.
+3. **A config block + `validate.js` rules** — add the provider's env vars to
+   `src/config/index.js` (mirroring the existing `defraId` block) and any
+   required-value/format rules to `src/config/validate.js` (mirroring the
+   existing `DEFRA_ID_REQUIRED` matrix).
+4. **Provider tests** — a colocated `index.test.js` covering `beginLogin`/
+   `completeLogin`/`logoutRedirectUrl`/`extraRoutes`, plus an integration
+   test in `test/auth-integration.test.js` exercising it end to end (a mock
+   IdP for OIDC providers, following `test/helpers/mock-idp.js`).
+5. **Register redirect URIs with the IdP** — a real (non-mock) provider needs
+   its callback and post-logout redirect URIs allow-listed with the IdP for
+   every environment, same as the Defra ID prerequisites in
+   `specs/002-defra-id-integration-spec.md` §3.
+
+`src/routes/auth/{login,callback,logout}.js` stay on their existing,
+URL-stable paths (spec §2.5) and only ever call `src/auth/service.js`, which
+resolves the right provider by name — no route, service, or router change is
+needed to add a provider. `npm run lint` enforces the layer boundaries
+(`eslint.config.js`'s `import/no-restricted-paths` zones): a provider that
+reaches into `service.js` or `routes/`, or a route that imports a provider or
+client directly, fails lint.
+
 ## Running the tests
 
 ```bash

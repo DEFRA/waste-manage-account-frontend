@@ -44,6 +44,14 @@ Allow external users ("operators" / customers) to sign in to the service using t
 
 ## 2. Architecture overview
 
+> **Note (28 Jul 2026):** the flow below is the original, correct description
+> of _what_ the app does and _why_. _Where_ the code that does it now lives
+> was restructured by `specs/003-auth-refactor.md` into layered
+> `core/`/`clients/oidc/`/`providers/defra-id/`/`service.js` modules with a
+> provider registry — see that spec §2 for the current file layout and
+> import-direction rules. This section is kept as the historical record of
+> the flow's design and is not updated for the refactor.
+
 ```
 ┌────────────┐   1. GET /auth/login          ┌──────────────────────┐
 │            │──────────────────────────────▶│                      │
