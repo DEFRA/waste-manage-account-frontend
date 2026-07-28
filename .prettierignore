@@ -8,6 +8,7 @@ package-lock.json
 # Vendored agent tooling — keep verbatim to avoid churn against upstream skill definitions
 .agents
 .claude
+prompts/library
 
 # Local-only loop artifacts (never reformat — PROGRESS.md is an append-only log)
 IMPLEMENTATION_PLAN.md
