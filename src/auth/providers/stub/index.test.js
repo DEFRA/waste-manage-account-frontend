@@ -157,7 +157,16 @@ describe('StubProvider (unit)', () => {
 
   describe('extraRoutes — /auth/defra-id', () => {
     test('rethrows a non-DiscoveryError raised by DefraIdProvider.beginLogin', async () => {
-      const { StubProvider } = await importFresh()
+      // The /auth/defra-id route only exists once DefraIdProvider.enabled()
+      // is true (WI-4b: extraRoutes() now gates it the same way router.js
+      // used to, so it 404s rather than hitting an unconfigured provider).
+      const { StubProvider } = await importFresh({
+        DEFRA_ID_DISCOVERY_URL:
+          'https://idp.example/.well-known/openid-configuration',
+        DEFRA_ID_CLIENT_ID: 'client-id',
+        DEFRA_ID_CLIENT_SECRET: 'client-secret',
+        DEFRA_ID_SERVICE_ID: 'service-id'
+      })
       const { DefraIdProvider } = await import('../defra-id/index.js')
       const unexpected = new Error('boom')
       const originalBeginLogin = DefraIdProvider.beginLogin

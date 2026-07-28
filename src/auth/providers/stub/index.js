@@ -67,13 +67,13 @@ async function logoutRedirectUrl() {
 }
 
 // Self-contained hapi route definitions for the chooser GET/POST plus the
-// FR-6 real-provider escape hatch. Not yet consumed by plugins/router.js —
-// that rewiring, and the session-write/audit/redirect these handlers still
-// do inline, both collapse into src/auth/service.js in the next work item
-// (spec-003 WI-4 Phase 5); until then this mirrors the pattern WI-3b used to
-// wire DefraIdProvider directly into routes/auth/{login,callback,logout}.js.
+// FR-6 real-provider escape hatch — the sole copy of these handlers
+// (spec-003 §11 WI-4b; the former routes/auth/stub.js duplicate is gone).
+// Session-write/audit/redirect stay inline here rather than going through
+// service.js: the providers→service import direction (spec §2.1) is
+// one-way, so a provider module cannot call the service layer that calls it.
 function extraRoutes() {
-  return [
+  const routes = [
     {
       method: 'GET',
       path: '/auth/stub/login',
@@ -104,8 +104,15 @@ function extraRoutes() {
         // than trusted because it "looked safe" when the form was rendered.
         return h.redirect(safeReturnTo(payload.returnTo))
       }
-    },
-    {
+    }
+  ]
+
+  // FR-6 real-provider escape hatch: only exists when real Defra ID
+  // credentials are also configured alongside the stub (H-8/§8) — without
+  // this guard the route would be registered unconditionally and hit
+  // DefraIdProvider with an unconfigured discovery URL.
+  if (DefraIdProvider.enabled()) {
+    routes.push({
       method: 'GET',
       path: '/auth/defra-id',
       options: { auth: false },
@@ -127,8 +134,10 @@ function extraRoutes() {
 
         return h.redirect(result.redirectUrl)
       }
-    }
-  ]
+    })
+  }
+
+  return routes
 }
 
 export const StubProvider = {
