@@ -1,4 +1,4 @@
-import { config } from '../config/index.js'
+import { config } from '../../../config/index.js'
 
 // Spec §6.1 / H-3: only the discovery URL is configured — every endpoint the
 // auth flow uses is read from the .well-known document, so an environment

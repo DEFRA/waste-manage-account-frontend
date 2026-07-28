@@ -6,12 +6,18 @@ import {
   setProfile,
   takePreAuth
 } from '../../auth/core/session.js'
-import { DiscoveryError, getDiscovery } from '../../auth/discovery.js'
-import { TokenExchangeError, exchangeCode } from '../../auth/token-endpoint.js'
+import {
+  DiscoveryError,
+  getDiscovery
+} from '../../auth/clients/oidc/discovery.js'
+import {
+  TokenExchangeError,
+  exchangeCode
+} from '../../auth/clients/oidc/token-endpoint.js'
 import {
   TokenVerificationError,
   verifyIdToken
-} from '../../auth/verify-token.js'
+} from '../../auth/clients/oidc/verify-token.js'
 import { config } from '../../config/index.js'
 
 // Spec §5.1: assembled from verified id_token claims only — never from the

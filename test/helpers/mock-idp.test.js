@@ -5,7 +5,7 @@ import { afterEach, describe, expect, test } from 'vitest'
 import {
   TokenVerificationError,
   verifyIdToken
-} from '../../src/auth/verify-token.js'
+} from '../../src/auth/clients/oidc/verify-token.js'
 import { startMockIdp } from './mock-idp.js'
 
 // The mock IdP is a real loopback HTTP server (not a stubbed fetch), so

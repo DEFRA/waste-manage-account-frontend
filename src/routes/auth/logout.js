@@ -4,7 +4,10 @@ import {
   getProfile,
   regenerateSession
 } from '../../auth/core/session.js'
-import { DiscoveryError, getDiscovery } from '../../auth/discovery.js'
+import {
+  DiscoveryError,
+  getDiscovery
+} from '../../auth/clients/oidc/discovery.js'
 import { config } from '../../config/index.js'
 
 // FR-5: read what's needed for federated logout, then destroy the local

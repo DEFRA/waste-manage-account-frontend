@@ -1,15 +1,16 @@
-import crypto from 'node:crypto'
-
 import { auditLoginFailure } from '../../auth/core/audit.js'
 import { randomToken } from '../../auth/core/random.js'
 import { safeReturnTo } from '../../auth/core/return-to.js'
 import { setPreAuth } from '../../auth/core/session.js'
-import { DiscoveryError, getDiscovery } from '../../auth/discovery.js'
+import {
+  DiscoveryError,
+  getDiscovery
+} from '../../auth/clients/oidc/discovery.js'
+import {
+  codeChallengeS256,
+  createCodeVerifier
+} from '../../auth/clients/oidc/pkce.js'
 import { config } from '../../config/index.js'
-
-function codeChallengeS256(codeVerifier) {
-  return crypto.createHash('sha256').update(codeVerifier).digest('base64url')
-}
 
 function buildAuthorizeUrl(discovery, { state, nonce, codeVerifier, query }) {
   const params = new URLSearchParams({
@@ -67,7 +68,9 @@ export async function initiateRealLogin(request, h) {
 
   const state = randomToken()
   const nonce = randomToken()
-  const codeVerifier = config.defraId.pkceEnabled ? randomToken() : undefined
+  const codeVerifier = config.defraId.pkceEnabled
+    ? createCodeVerifier()
+    : undefined
 
   setPreAuth(request, {
     state,
