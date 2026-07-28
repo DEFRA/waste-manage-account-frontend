@@ -31,7 +31,7 @@ const TEST_USERS = {
     ],
     scope: ['operator']
   },
-  // Fixture for the FR-4 role guard (src/auth/guards.js): the only canned
+  // Fixture for the FR-4 role guard (src/auth/core/guards.js): the only canned
   // user carrying a non-empty roles array.
   'org-manager': {
     id: 'test-org-manager',

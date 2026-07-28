@@ -1,12 +1,12 @@
-import { auditLoginFailure, auditLoginSuccess } from '../../auth/audit.js'
-import { DiscoveryError, getDiscovery } from '../../auth/discovery.js'
-import { safeReturnTo } from '../../auth/return-to.js'
+import { auditLoginFailure, auditLoginSuccess } from '../../auth/core/audit.js'
+import { safeReturnTo } from '../../auth/core/return-to.js'
 import {
   regenerateSession,
   setIdToken,
   setProfile,
   takePreAuth
-} from '../../auth/session.js'
+} from '../../auth/core/session.js'
+import { DiscoveryError, getDiscovery } from '../../auth/discovery.js'
 import { TokenExchangeError, exchangeCode } from '../../auth/token-endpoint.js'
 import {
   TokenVerificationError,

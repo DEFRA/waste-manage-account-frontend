@@ -110,7 +110,10 @@ describe('auth plugin — deny by default outside NODE_ENV=test (FR-3)', () => {
     vi.resetModules()
 
     const [{ createServer: freshCreateServer }, sessionModule] =
-      await Promise.all([import('../server.js'), import('../auth/session.js')])
+      await Promise.all([
+        import('../server.js'),
+        import('../auth/core/session.js')
+      ])
 
     return { createServer: freshCreateServer, ...sessionModule }
   }

@@ -7,7 +7,7 @@ import {
   setPreAuth,
   setProfile,
   takePreAuth
-} from '../auth/session.js'
+} from '../auth/core/session.js'
 import { createServer } from '../server.js'
 
 const PROFILE = {

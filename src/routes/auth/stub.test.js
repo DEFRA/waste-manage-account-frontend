@@ -40,7 +40,7 @@ async function setupServer(envOverrides = {}) {
   }
   vi.resetModules()
   const { createServer: freshCreateServer } = await import('../../server.js')
-  const { getProfile } = await import('../../auth/session.js')
+  const { getProfile } = await import('../../auth/core/session.js')
 
   const server = await freshCreateServer()
   server.route({

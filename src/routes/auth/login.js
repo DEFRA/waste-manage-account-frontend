@@ -1,9 +1,9 @@
 import crypto from 'node:crypto'
 
-import { auditLoginFailure } from '../../auth/audit.js'
+import { auditLoginFailure } from '../../auth/core/audit.js'
+import { safeReturnTo } from '../../auth/core/return-to.js'
+import { setPreAuth } from '../../auth/core/session.js'
 import { DiscoveryError, getDiscovery } from '../../auth/discovery.js'
-import { safeReturnTo } from '../../auth/return-to.js'
-import { setPreAuth } from '../../auth/session.js'
 import { config } from '../../config/index.js'
 
 // FR-1 / H-1: state, nonce and the PKCE code_verifier are all unguessable

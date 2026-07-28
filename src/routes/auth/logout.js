@@ -1,10 +1,10 @@
-import { auditLogout } from '../../auth/audit.js'
-import { DiscoveryError, getDiscovery } from '../../auth/discovery.js'
+import { auditLogout } from '../../auth/core/audit.js'
 import {
   getIdToken,
   getProfile,
   regenerateSession
-} from '../../auth/session.js'
+} from '../../auth/core/session.js'
+import { DiscoveryError, getDiscovery } from '../../auth/discovery.js'
 import { config } from '../../config/index.js'
 
 // FR-5: read what's needed for federated logout, then destroy the local

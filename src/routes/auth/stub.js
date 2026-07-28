@@ -1,13 +1,13 @@
 import Boom from '@hapi/boom'
 
-import { auditLoginSuccess } from '../../auth/audit.js'
-import { safeReturnTo } from '../../auth/return-to.js'
+import { auditLoginSuccess } from '../../auth/core/audit.js'
+import { safeReturnTo } from '../../auth/core/return-to.js'
 import {
   regenerateSession,
   setProfile,
   setStubCsrf,
   takeStubCsrf
-} from '../../auth/session.js'
+} from '../../auth/core/session.js'
 import { getStubUser, getStubUsers } from '../../auth/stub-users.js'
 import { isDefraIdConfigured } from '../../config/index.js'
 import { initiateRealLogin, randomToken } from './login.js'

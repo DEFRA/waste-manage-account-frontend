@@ -1,6 +1,6 @@
 import Boom from '@hapi/boom'
 
-import { getProfile } from '../auth/session.js'
+import { getProfile } from '../auth/core/session.js'
 import { getTestUser } from '../auth/test-users.js'
 import { config } from '../config/index.js'
 

@@ -36,7 +36,7 @@ async function setupServer(envOverrides = {}) {
   }
   vi.resetModules()
   const { createServer: freshCreateServer } = await import('../../server.js')
-  const { takePreAuth } = await import('../../auth/session.js')
+  const { takePreAuth } = await import('../../auth/core/session.js')
 
   const server = await freshCreateServer()
   // Exercises the same pre-auth session values /auth/login writes, the way
