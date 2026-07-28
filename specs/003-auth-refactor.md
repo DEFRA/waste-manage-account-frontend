@@ -1,7 +1,7 @@
 # Auth Architecture Refactor — Provider / Client / Service Layering
 
 **Version:** 2.0 · **Date:** 28 July 2026 · **Author:** Ibrahim Uylas
-**Status:** Ready for implementation (refined via clarify workshop, 28 Jul 2026)
+**Status:** Complete — all AC-1…AC-9 and WI-1…WI-5 verified 28 Jul 2026
 **Type:** Task (refactor — no user-facing change) · **Priority:** P1 — blocks the next auth implementation
 **Depends on:** `specs/002-defra-id-integration-spec.md` (the working Defra ID implementation)
 
@@ -75,6 +75,11 @@ src/
                               (parsing moves to providers/defra-id, §2.4)
       random.js             ← randomToken() extracted from routes/auth/login.js
       scheme.js             ← session-auth scheme extracted from plugins/auth.js
+      complete-auth.js      NEW (added post-WI-4b) — completeAuthentication():
+                              regenerate + write profile + audit, the one
+                              function both service.js and the stub provider
+                              call for a login-boundary session write (§6
+                              invariant 5)
     clients/
       oidc/
         discovery.js        ← src/auth/discovery.js (move, unchanged)
@@ -169,21 +174,21 @@ All existing env vars keep their names and semantics.
 
 Structure:
 
-- [ ] **AC-1** The `src/auth/` tree matches §2.2; none of the old flat files remain; every moved module's co-located test moved with it.
-- [ ] **AC-2** The §2.1 import-direction rules are enforced by `eslint-plugin-import` `no-restricted-paths` zones in `eslint.config.js`, and `npm run lint` fails on a violating import (verified by temporarily adding one).
-- [ ] **AC-3** No route file imports another route file; `process.env` is read only under `src/config/` (both also covered by AC-2's zones where expressible, and by grep otherwise).
+- [x] **AC-1** The `src/auth/` tree matches §2.2; none of the old flat files remain; every moved module's co-located test moved with it.
+- [x] **AC-2** The §2.1 import-direction rules are enforced by `eslint-plugin-import` `no-restricted-paths` zones in `eslint.config.js`, and `npm run lint` fails on a violating import (verified by temporarily adding one).
+- [x] **AC-3** No route file imports another route file; `process.env` is read only under `src/config/` (both also covered by AC-2's zones where expressible, and by grep otherwise).
 
 Behaviour preservation:
 
-- [ ] **AC-4** Every `/auth/*` URL, method, and auth mode is unchanged: `/auth/login`, `/auth/callback`, `/auth/logout`, `/auth/signed-out`, `/auth/stub/login` (GET+POST), `/auth/defra-id` — asserted by the integration suite, which passes unmodified except for import paths and the AC-6 fixture shape.
-- [ ] **AC-5** `npm test` green with coverage not below the pre-refactor baseline; `test/auth-integration.test.js` covers stub login, real-flow callback happy path, all four fail-closed callback branches (`state_mismatch`, `missing_code`, `token_exchange_failed`, `token_verification_failed`), discovery-failure on login, and logout with and without an id_token — same failure classes in logs/audit as today.
-- [ ] **AC-6** Session profiles store relationships as `{ relationshipId, organisationId, organisationName }` objects (§2.4); no colon-format parsing exists outside `providers/defra-id/`; stub and test fixtures use the structured shape; org guard still fails closed for unknown/missing/non-member IDs.
-- [ ] **AC-7** The spec-002 invariants checklist (§6 below) is walked and every item verified at final review; grep confirms no new log site emits tokens, id_tokens, claims payloads, or IdP response bodies.
+- [x] **AC-4** Every `/auth/*` URL, method, and auth mode is unchanged: `/auth/login`, `/auth/callback`, `/auth/logout`, `/auth/signed-out`, `/auth/stub/login` (GET+POST), `/auth/defra-id` — asserted by the integration suite, which passes unmodified except for import paths and the AC-6 fixture shape.
+- [x] **AC-5** `npm test` green with coverage not below the pre-refactor baseline; `test/auth-integration.test.js` covers stub login, real-flow callback happy path, all four fail-closed callback branches (`state_mismatch`, `missing_code`, `token_exchange_failed`, `token_verification_failed`), discovery-failure on login, and logout with and without an id_token — same failure classes in logs/audit as today.
+- [x] **AC-6** Session profiles store relationships as `{ relationshipId, organisationId, organisationName }` objects (§2.4); no colon-format parsing exists outside `providers/defra-id/`; stub and test fixtures use the structured shape; org guard still fails closed for unknown/missing/non-member IDs.
+- [x] **AC-7** The spec-002 invariants checklist (§6 below) is walked and every item verified at final review; grep confirms no new log site emits tokens, id_tokens, claims payloads, or IdP response bodies.
 
 Extensibility (the point of the work):
 
-- [ ] **AC-8** Adding a provider touches only: a new `providers/<name>/` folder, one `registry.js` entry, a config block + `validate.js` rules — demonstrated by the README "How to add an auth provider" checklist, and sanity-checked by the reviewer against the Entra ID scenario.
-- [ ] **AC-9** Rate-limit settings flow through `config/index.js` and `validateConfig()` (integer rules), with `rate-limit.test.js` updated accordingly; `config.auth.defaultProvider` is the single source of provider selection (router and login route no longer branch on `stubEnabled` themselves).
+- [x] **AC-8** Adding a provider touches only: a new `providers/<name>/` folder, one `registry.js` entry, a config block + `validate.js` rules — demonstrated by the README "How to add an auth provider" checklist, and sanity-checked by the reviewer against the Entra ID scenario.
+- [x] **AC-9** Rate-limit settings flow through `config/index.js` and `validateConfig()` (integer rules), with `rate-limit.test.js` updated accordingly; `config.auth.defaultProvider` is the single source of provider selection (router and login route no longer branch on `stubEnabled` themselves).
 
 ## 4. Out of Scope
 
@@ -235,7 +240,7 @@ README "How to add an auth provider" checklist (create `providers/<name>/`, impl
 2. Deny-by-default still set before any route registration (plugin order in `server.js` untouched).
 3. Callback still: single-use pre-auth read first → state check → error param → code → discovery → exchange → verify → regenerate → write profile — same order, same failure classes in logs/audit.
 4. No token, id_token, claims payload, or IdP response body ever logged.
-5. Session regeneration at both auth boundaries (login success, logout) — now asserted in exactly one file (`service.js`).
+5. Session regeneration at both auth boundaries. Login-boundary regeneration (+ profile write + audit) is asserted in exactly one function, `core/complete-auth.js`'s `completeAuthentication()` — called by `service.js` (real-provider flow) and `providers/stub/index.js` (which has no separate begin/complete round trip through the service to hang it off; providers may import `core/`, spec §2.1). Logout-boundary regeneration stays solely in `service.js`, since logout is always service-owned.
 6. Stub routes absent when `AUTH_STUB_ENABLED=false`; stub hard-blocked in prod by `validateConfig`.
 7. `x-test-user-type` bypass behaviour identical.
 8. `process.env` read only in `src/config/` (after Phase 6).
@@ -302,11 +307,11 @@ Every work item inherits the standing constraints: no behaviour change, no URL c
 
 Record the coverage baseline and confirm `test/auth-integration.test.js` covers every AC-5 branch (add thin integration cases for any branch covered only by unit tests of the current layout). Then `git mv` `session.js`, `return-to.js`, `audit.js`, `guards.js` (+ tests) into `src/auth/core/` and extract `randomToken()` into `core/random.js`, updating importers per §7.
 
-- [ ] Coverage baseline recorded (number noted in the WI-1 commit message or PR description)
-- [ ] Integration suite exercises: stub login, callback happy path, all four fail-closed branches, discovery-failure on login, logout with/without id_token
-- [ ] `core/` contains session, return-to, audit, guards, random (+ tests); old locations gone
-- [ ] `routes/auth/stub.js` imports `randomToken` from `core/random.js`, not from `login.js`
-- [ ] Suite and lint green; zero behaviour change
+- [x] Coverage baseline recorded (number noted in the WI-1 commit message or PR description)
+- [x] Integration suite exercises: stub login, callback happy path, all four fail-closed branches, discovery-failure on login, logout with/without id_token
+- [x] `core/` contains session, return-to, audit, guards, random (+ tests); old locations gone
+- [x] `routes/auth/stub.js` imports `randomToken` from `core/random.js`, not from `login.js`
+- [x] Suite and lint green; zero behaviour change
 
 ### WI-2: Extract OIDC client layer
 
@@ -314,10 +319,10 @@ Record the coverage baseline and confirm `test/auth-integration.test.js` covers 
 
 `git mv` `discovery.js`, `token-endpoint.js`, `verify-token.js` (+ tests) into `src/auth/clients/oidc/`; extract `codeChallengeS256()` into `clients/oidc/pkce.js` and add `createCodeVerifier()` (wrapping `core/random.js` — hence the WI-1 dependency).
 
-- [ ] `clients/oidc/` contains discovery, token-endpoint, verify-token, pkce (+ tests)
-- [ ] Module-level caches unchanged and still URL-keyed (not per-provider-ified)
-- [ ] `routes/auth/login.js` uses `clients/oidc/pkce.js`; no protocol crypto remains in route files
-- [ ] Suite and lint green; zero behaviour change
+- [x] `clients/oidc/` contains discovery, token-endpoint, verify-token, pkce (+ tests)
+- [x] Module-level caches unchanged and still URL-keyed (not per-provider-ified)
+- [x] `routes/auth/login.js` uses `clients/oidc/pkce.js`; no protocol crypto remains in route files
+- [x] Suite and lint green; zero behaviour change
 
 ### WI-3: Defra ID provider + relationships normalisation
 
@@ -325,11 +330,11 @@ Record the coverage baseline and confirm `test/auth-integration.test.js` covers 
 
 Create `providers/defra-id/` (`index.js`, `authorize-url.js`, `profile.js`, `relationships.js`) implementing the §2.3 interface, absorbing `initiateRealLogin`, the callback orchestration, the end-session URL building, and `isDefraIdConfigured` as `enabled`. Implement §2.4 normalisation in the same item: structured relationship objects in the profile, `core/organisation-access.js` reduced to structured lookups, stub/test fixtures and their tests updated in the same commit.
 
-- [ ] `DefraIdProvider` implements `name`/`enabled`/`beginLogin`/`completeLogin`/`logoutRedirectUrl`/`extraRoutes`
-- [ ] Session profile stores `{ relationshipId, organisationId, organisationName }` objects (AC-6); no colon parsing outside `providers/defra-id/`
-- [ ] `core/organisation-access.js` is provider-neutral; guard fail-closed behaviour preserved for unknown/missing/non-member IDs
-- [ ] Typed client errors mapped to today's failure classes; identical log/audit output shapes
-- [ ] Stub and test fixtures use structured relationships; suite and lint green
+- [x] `DefraIdProvider` implements `name`/`enabled`/`beginLogin`/`completeLogin`/`logoutRedirectUrl`/`extraRoutes`
+- [x] Session profile stores `{ relationshipId, organisationId, organisationName }` objects (AC-6); no colon parsing outside `providers/defra-id/`
+- [x] `core/organisation-access.js` is provider-neutral; guard fail-closed behaviour preserved for unknown/missing/non-member IDs
+- [x] Typed client errors mapped to today's failure classes; identical log/audit output shapes
+- [x] Stub and test fixtures use structured relationships; suite and lint green
 
 ### WI-4: Stub provider, service layer, thin routes
 
@@ -337,11 +342,11 @@ Create `providers/defra-id/` (`index.js`, `authorize-url.js`, `profile.js`, `rel
 
 Create `providers/stub/` (chooser as `beginLogin`/`extraRoutes`, CSRF-checked `completeLogin`, null `logoutRedirectUrl`) and move `test-users.js` to `auth/testing/`. Extract `core/scheme.js` from `plugins/auth.js`. Create `src/auth/service.js` owning session writes, `regenerateSession`, audit, `safeReturnTo`, and the fail-closed policy; thin all four auth routes to delegating handlers; `plugins/router.js` composes routes from the registry.
 
-- [ ] `service.js` is the only file writing the verified profile or calling `regenerateSession`
-- [ ] All auth route handlers are thin delegates; no route file imports another route file
-- [ ] `plugins/router.js` gets provider routes from `registry.enabledProviders().flatMap(p => p.extraRoutes())`; its stub/`isDefraIdConfigured` conditionals deleted
-- [ ] Every `/auth/*` URL, method, and auth mode unchanged (AC-4); stub routes still absent when `AUTH_STUB_ENABLED=false`
-- [ ] `x-test-user-type` bypass behaviour identical; suite and lint green
+- [x] `core/complete-auth.js`'s `completeAuthentication()` is the only place writing the verified profile or calling `regenerateSession` at the login boundary — `service.js` and `providers/stub/index.js` both call it rather than duplicating the sequence (revised after WI-4b shipped the two copies inline; closed post-WI-5 by extracting the shared primitive, §6 invariant 5)
+- [x] All auth route handlers are thin delegates; no route file imports another route file
+- [x] `plugins/router.js` gets provider routes from `registry.enabledProviders().flatMap(p => p.extraRoutes())`; its stub/`isDefraIdConfigured` conditionals deleted
+- [x] Every `/auth/*` URL, method, and auth mode unchanged (AC-4); stub routes still absent when `AUTH_STUB_ENABLED=false`
+- [x] `x-test-user-type` bypass behaviour identical; suite and lint green
 
 ### WI-5: Config discipline, docs, lint enforcement
 
@@ -349,8 +354,8 @@ Create `providers/stub/` (chooser as `beginLogin`/`extraRoutes`, CSRF-checked `c
 
 Apply §2.6 (read `rate-limit.test.js` first — module-scope env coupling, §8): `config.auth.defaultProvider` as the single provider-selection source, rate-limit values through `config/index.js` + `validate.js`, `isDefraIdConfigured` fully relocated. Then the README "How to add an auth provider" checklist, the `eslint-plugin-import` `no-restricted-paths` zones, and the spec 002 pointer. Close with the full AC-7 invariants walk.
 
-- [ ] No `process.env` reads outside `src/config/`; rate-limit values validated at boot (AC-9)
-- [ ] `npm run lint` fails on a layer-violating import (AC-2, verified by temporarily adding one)
-- [ ] README provider checklist present; adding a provider touches only `providers/<name>/`, `registry.js`, config + validation (AC-8)
-- [ ] Spec 002 §2 updated or pointed at this spec
-- [ ] Final review: all §3 acceptance criteria checked, §6 invariants walked, coverage ≥ WI-1 baseline (AC-7)
+- [x] No `process.env` reads outside `src/config/`; rate-limit values validated at boot (AC-9)
+- [x] `npm run lint` fails on a layer-violating import (AC-2, verified by temporarily adding one)
+- [x] README provider checklist present; adding a provider touches only `providers/<name>/`, `registry.js`, config + validation (AC-8)
+- [x] Spec 002 §2 updated or pointed at this spec
+- [x] Final review: all §3 acceptance criteria checked, §6 invariants walked, coverage ≥ WI-1 baseline (AC-7)
