@@ -24,9 +24,6 @@
     "git:hooks": "husky"
   },
   "license": "OGL-UK-3.0",
-  "overrides": {
-    "fast-uri": "3.1.4"
-  },
   "dependencies": {
     "@hapi/boom": "10.0.1",
     "@hapi/catbox": "12.1.1",
