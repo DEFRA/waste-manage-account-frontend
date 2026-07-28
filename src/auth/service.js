@@ -1,24 +1,22 @@
 // Orchestrates login/logout flows against the provider registry (spec §2.1
 // SERVICE layer): "which provider, which step, what happens to the
-// session." Owns everything §2.3 says never belongs in a provider — session
-// writes of the verified profile, regenerateSession() at both auth
-// boundaries, audit events, safeReturnTo handling, and the fail-closed
-// redirect policy — so those invariants (H-2/H-5/H-7/H-11) are enforced in
-// exactly one place regardless of how many providers exist. Routes call
-// only this module; providers are never imported directly by a route.
+// session." Owns everything §2.3 says never belongs in a provider — audit
+// events, safeReturnTo handling, and the fail-closed redirect policy for
+// every real-provider flow. The verified-profile session write and
+// regenerateSession() at the login boundary live in core/complete-auth.js
+// (shared with the stub provider, which has no separate begin/complete round
+// trip through this module to hang them off); regenerateSession() at the
+// logout boundary stays here, since logout is always a service-owned flow.
+// Routes call only this module; providers are never imported directly by a
+// route.
 
-import {
-  auditLoginFailure,
-  auditLoginSuccess,
-  auditLogout
-} from './core/audit.js'
+import { auditLoginFailure, auditLogout } from './core/audit.js'
+import { completeAuthentication } from './core/complete-auth.js'
 import { safeReturnTo } from './core/return-to.js'
 import {
   getIdToken,
   getProfile,
   regenerateSession,
-  setIdToken,
-  setProfile,
   takePreAuth
 } from './core/session.js'
 import {
@@ -117,12 +115,10 @@ export async function completeLogin(request) {
     throw err
   }
 
-  // Session-fixation defence (spec §7, H-2): regenerate before writing any
-  // authenticated state into the session.
-  regenerateSession(request)
-  setProfile(request, result.profile)
-  setIdToken(request, result.idToken)
-  auditLoginSuccess(request.logger, result.profile.id)
+  completeAuthentication(request, {
+    profile: result.profile,
+    idToken: result.idToken
+  })
 
   // returnTo is attacker-controllable (it arrived as a query param on
   // /auth/login) — re-check it at read time rather than trusting the stored

@@ -1,14 +1,10 @@
 import Boom from '@hapi/boom'
 
-import { auditLoginFailure, auditLoginSuccess } from '../../core/audit.js'
+import { auditLoginFailure } from '../../core/audit.js'
+import { completeAuthentication } from '../../core/complete-auth.js'
 import { randomToken } from '../../core/random.js'
 import { safeReturnTo } from '../../core/return-to.js'
-import {
-  regenerateSession,
-  setProfile,
-  setStubCsrf,
-  takeStubCsrf
-} from '../../core/session.js'
+import { setStubCsrf, takeStubCsrf } from '../../core/session.js'
 import { config } from '../../../config/index.js'
 import { DefraIdProvider, DiscoveryError } from '../defra-id/index.js'
 import { getStubUser, getStubUsers } from './users.js'
@@ -69,9 +65,12 @@ async function logoutRedirectUrl() {
 // Self-contained hapi route definitions for the chooser GET/POST plus the
 // FR-6 real-provider escape hatch — the sole copy of these handlers
 // (spec-003 §11 WI-4b; the former routes/auth/stub.js duplicate is gone).
-// Session-write/audit/redirect stay inline here rather than going through
-// service.js: the providers→service import direction (spec §2.1) is
-// one-way, so a provider module cannot call the service layer that calls it.
+// The redirect stays inline here rather than going through service.js: the
+// providers→service import direction (spec §2.1) is one-way, so a provider
+// module cannot call the service layer that calls it. The security-critical
+// session write itself (regenerate + profile + audit) does NOT duplicate
+// service.js's copy — both call the shared core/complete-auth.js primitive,
+// which providers may import (core sits below both, spec §2.1).
 function extraRoutes() {
   const routes = [
     {
@@ -91,13 +90,11 @@ function extraRoutes() {
         const payload = request.payload ?? {}
         const { profile } = completeLogin(request)
 
-        // Session-fixation defence (H-2), same as a real login: regenerate
-        // before writing any authenticated state, and write no id_token — a
-        // stub session has none to give at logout (FR-5 goes straight to the
-        // signed-out page for these sessions).
-        regenerateSession(request)
-        setProfile(request, profile)
-        auditLoginSuccess(request.logger, profile.id)
+        // Session-fixation defence (H-2), same primitive a real login uses:
+        // regenerate before writing any authenticated state. idToken is
+        // omitted — a stub session has none to give at logout (FR-5 goes
+        // straight to the signed-out page for these sessions).
+        completeAuthentication(request, { profile })
 
         // returnTo travelled here as a plain form field, so — exactly like
         // the real callback route — it is re-validated at read time rather
