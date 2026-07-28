@@ -1,12 +1,10 @@
-import { DefraIdProvider } from '../auth/providers/defra-id/index.js'
+import { enabledProviders } from '../auth/providers/registry.js'
 import { callback } from '../routes/auth/callback.js'
 import { login } from '../routes/auth/login.js'
 import { logout, signedOut } from '../routes/auth/logout.js'
-import { defraId, stubLogin, stubLoginSubmit } from '../routes/auth/stub.js'
 import { health } from '../routes/health.js'
 import { home } from '../routes/home.js'
 import { organisation } from '../routes/organisation.js'
-import { config } from '../config/index.js'
 
 export const router = {
   plugin: {
@@ -19,18 +17,14 @@ export const router = {
         callback,
         logout,
         signedOut,
-        organisation
+        organisation,
+        // Provider-contributed routes (spec §11 WI-4b): each enabled
+        // provider's extraRoutes() — e.g. the stub chooser GET/POST and the
+        // /auth/defra-id escape hatch — replacing the stubEnabled/
+        // isDefraIdConfigured conditionals this file used to branch on
+        // itself.
+        ...enabledProviders().flatMap((provider) => provider.extraRoutes())
       ]
-
-      // FR-6: the stub chooser only exists when stub mode is on, and its
-      // real-provider escape hatch only exists when real Defra ID
-      // credentials are configured alongside it — otherwise 404 (H-8/§8).
-      if (config.auth.stubEnabled) {
-        routes.push(stubLogin, stubLoginSubmit)
-        if (DefraIdProvider.enabled()) {
-          routes.push(defraId)
-        }
-      }
 
       server.route(routes)
     }

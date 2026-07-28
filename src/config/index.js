@@ -11,6 +11,13 @@ function envFlag(value, defaultValue) {
   return value === undefined ? defaultValue : value === 'true'
 }
 
+// Stub sign-in defaults on everywhere except prod, where validateConfig()
+// hard-blocks it even when forced on (spec §9, H-8).
+const stubEnabled = envFlag(
+  process.env.AUTH_STUB_ENABLED,
+  environment !== 'prod'
+)
+
 export const config = {
   serviceName: 'waste-manage-account-frontend',
   environment,
@@ -21,11 +28,15 @@ export const config = {
   isDevelopment: nodeEnv === 'development',
   isTest: nodeEnv === 'test',
   auth: {
-    // Stub sign-in defaults on everywhere except prod, where validateConfig()
-    // hard-blocks it even when forced on (spec §9, H-8).
-    stubEnabled: envFlag(process.env.AUTH_STUB_ENABLED, environment !== 'prod'),
+    stubEnabled,
     callbackBaseUrl:
-      process.env.AUTH_CALLBACK_BASE_URL ?? 'http://localhost:3000'
+      process.env.AUTH_CALLBACK_BASE_URL ?? 'http://localhost:3000',
+    // §2.6: computed, not a new env var — the single source of provider
+    // selection the registry/service read, replacing the scattered
+    // "stub replaces the real flow" branches that used to live in
+    // routes/plugins (AC-9). A future AUTH_DEFAULT_PROVIDER env var can
+    // override this once a second real provider exists — out of scope now.
+    defaultProvider: stubEnabled ? 'stub' : 'defra-id'
   },
   session: {
     // No default: real environments must supply their own secret (spec §9).

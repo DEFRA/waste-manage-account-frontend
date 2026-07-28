@@ -119,10 +119,19 @@ async function logoutRedirectUrl({ idToken, request }) {
   return `${discovery.end_session_endpoint}?${params.toString()}`
 }
 
+// No provider-specific routes of its own: /auth/login, /auth/callback and
+// /auth/logout are static, URL-stable routes (spec §2.5) already wired
+// directly to this provider via service.js. Present only so the registry
+// can call extraRoutes() uniformly across every enabled provider.
+function extraRoutes() {
+  return []
+}
+
 export const DefraIdProvider = {
   name: 'defra-id',
   enabled,
   beginLogin,
   completeLogin,
-  logoutRedirectUrl
+  logoutRedirectUrl,
+  extraRoutes
 }

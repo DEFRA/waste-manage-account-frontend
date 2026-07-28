@@ -1,58 +1,14 @@
-import { auditLogout } from '../../auth/core/audit.js'
-import {
-  getIdToken,
-  getProfile,
-  regenerateSession
-} from '../../auth/core/session.js'
-import {
-  DefraIdProvider,
-  DiscoveryError
-} from '../../auth/providers/defra-id/index.js'
+import { logout as serviceLogout, respond } from '../../auth/service.js'
 
-// FR-5: read what's needed for federated logout, then destroy the local
-// session before anything else — a request that fails or bounces back
-// from the IdP must never find an authenticated session (H-7).
+// FR-5: thin HTTP glue — session teardown, audit, and the federated vs.
+// local-only redirect decision all live in service.logout.
 export const logout = {
   method: 'GET',
   path: '/auth/logout',
   options: { auth: false },
   async handler(request, h) {
-    const idToken = getIdToken(request)
-    const userId = getProfile(request)?.id
-    auditLogout(request.logger, userId)
-
-    // yar.reset() drops the server-side cache entry for the current session
-    // and issues a fresh, empty one — this alone destroys profile, id_token
-    // and any leftover pre-auth values (spec §7, H-2).
-    regenerateSession(request)
-
-    // Stub sessions (and sessions already signed out) carry no id_token, so
-    // there is nothing to federate — go straight to the local confirmation.
-    if (!idToken) {
-      return h.redirect('/auth/signed-out')
-    }
-
-    let redirectUrl
-    try {
-      redirectUrl = await DefraIdProvider.logoutRedirectUrl({
-        idToken,
-        request
-      })
-    } catch (err) {
-      if (!(err instanceof DiscoveryError)) {
-        throw err
-      }
-      // The local session is already gone; a federated-logout failure just
-      // means Defra ID keeps its own session alive, not that our sign-out
-      // failed.
-      request.logger.warn(
-        { err },
-        'auth logout: discovery failed; skipping federated logout'
-      )
-      return h.redirect('/auth/signed-out')
-    }
-
-    return h.redirect(redirectUrl ?? '/auth/signed-out')
+    const result = await serviceLogout(request)
+    return respond(h, result)
   }
 }
 
