@@ -1,20 +1,11 @@
 import crypto from 'node:crypto'
 
 import { auditLoginFailure } from '../../auth/core/audit.js'
+import { randomToken } from '../../auth/core/random.js'
 import { safeReturnTo } from '../../auth/core/return-to.js'
 import { setPreAuth } from '../../auth/core/session.js'
 import { DiscoveryError, getDiscovery } from '../../auth/discovery.js'
 import { config } from '../../config/index.js'
-
-// FR-1 / H-1: state, nonce and the PKCE code_verifier are all unguessable
-// random tokens. RFC 7636 §4.1 requires the code_verifier to be 43-128
-// unreserved chars ([A-Za-z0-9-._~]); 32 random bytes base64url-encode to
-// exactly 43, which also makes a fine state/nonce value.
-// Exported for reuse wherever an unguessable session-bound token is needed
-// outside this file (e.g. the stub login CSRF token, H-9).
-export function randomToken() {
-  return crypto.randomBytes(32).toString('base64url')
-}
 
 function codeChallengeS256(codeVerifier) {
   return crypto.createHash('sha256').update(codeVerifier).digest('base64url')

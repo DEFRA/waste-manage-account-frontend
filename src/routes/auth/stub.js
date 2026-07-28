@@ -1,6 +1,7 @@
 import Boom from '@hapi/boom'
 
 import { auditLoginSuccess } from '../../auth/core/audit.js'
+import { randomToken } from '../../auth/core/random.js'
 import { safeReturnTo } from '../../auth/core/return-to.js'
 import {
   regenerateSession,
@@ -10,7 +11,7 @@ import {
 } from '../../auth/core/session.js'
 import { getStubUser, getStubUsers } from '../../auth/stub-users.js'
 import { isDefraIdConfigured } from '../../config/index.js'
-import { initiateRealLogin, randomToken } from './login.js'
+import { initiateRealLogin } from './login.js'
 
 // FR-6 dev stub: the fake-user chooser. Registered (router.js) only when
 // AUTH_STUB_ENABLED is true. A GOV.UK-styled form that works with no
