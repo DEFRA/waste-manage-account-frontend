@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 
-// AUTH_RATE_LIMIT_MAX/WINDOW_SECONDS and the plugin's threshold are read
-// once at import time (same idiom as session.test.js), so exercising a
+// AUTH_RATE_LIMIT_MAX/WINDOW_SECONDS flow through config/index.js and are
+// read once at import time (same idiom as session.test.js), so exercising a
 // non-default threshold means stubbing env then re-importing the whole
 // module graph fresh.
 async function createServerWithThreshold({ max, windowSeconds } = {}) {

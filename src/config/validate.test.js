@@ -26,6 +26,10 @@ function validConfig(overrides = {}) {
       clockToleranceSeconds: 60,
       discoveryCacheTtlSeconds: 3600
     },
+    rateLimit: {
+      windowSeconds: 60,
+      maxRequests: 20
+    },
     ...overrides
   }
 }
@@ -144,7 +148,9 @@ describe('validateConfig', () => {
     'SESSION_IDLE_TTL_MINUTES',
     'SESSION_ABSOLUTE_TTL_MINUTES',
     'DEFRA_ID_CLOCK_TOLERANCE_SECONDS',
-    'DEFRA_ID_DISCOVERY_CACHE_TTL_SECONDS'
+    'DEFRA_ID_DISCOVERY_CACHE_TTL_SECONDS',
+    'AUTH_RATE_LIMIT_WINDOW_SECONDS',
+    'AUTH_RATE_LIMIT_MAX'
   ])('rejects a non-numeric %s (NaN after parseInt)', (envVar) => {
     const byVar = {
       SESSION_IDLE_TTL_MINUTES: (c) => {
@@ -158,6 +164,12 @@ describe('validateConfig', () => {
       },
       DEFRA_ID_DISCOVERY_CACHE_TTL_SECONDS: (c) => {
         c.defraId.discoveryCacheTtlSeconds = Number.NaN
+      },
+      AUTH_RATE_LIMIT_WINDOW_SECONDS: (c) => {
+        c.rateLimit.windowSeconds = Number.NaN
+      },
+      AUTH_RATE_LIMIT_MAX: (c) => {
+        c.rateLimit.maxRequests = Number.NaN
       }
     }
     const config = validConfig()
@@ -195,6 +207,8 @@ describe('config defaults composed with validateConfig', () => {
     expect(config.session.absoluteTtlMinutes).toBe(720)
     expect(config.defraId.clockToleranceSeconds).toBe(60)
     expect(config.defraId.discoveryCacheTtlSeconds).toBe(3600)
+    expect(config.rateLimit.windowSeconds).toBe(60)
+    expect(config.rateLimit.maxRequests).toBe(Number.MAX_SAFE_INTEGER)
     expect(() => validateConfig(config)).not.toThrow()
   })
 

@@ -81,5 +81,19 @@ export const config = {
   redis: {
     host: process.env.REDIS_HOST ?? '127.0.0.1',
     port: Number.parseInt(process.env.REDIS_PORT ?? '6379', 10)
+  },
+  rateLimit: {
+    windowSeconds: Number.parseInt(
+      process.env.AUTH_RATE_LIMIT_WINDOW_SECONDS ?? '60',
+      10
+    ),
+    // Effectively unreachable by default under NODE_ENV=test, so the rest of
+    // the suite — which fires many requests at /auth/* routes — stays green;
+    // rate-limit.test.js opts back in with an explicit AUTH_RATE_LIMIT_MAX.
+    maxRequests: Number.parseInt(
+      process.env.AUTH_RATE_LIMIT_MAX ??
+        (nodeEnv === 'test' ? String(Number.MAX_SAFE_INTEGER) : '20'),
+      10
+    )
   }
 }

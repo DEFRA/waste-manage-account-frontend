@@ -72,7 +72,9 @@ export function validateConfig(config) {
       'DEFRA_ID_DISCOVERY_CACHE_TTL_SECONDS',
       config.defraId.discoveryCacheTtlSeconds,
       1
-    ]
+    ],
+    ['AUTH_RATE_LIMIT_WINDOW_SECONDS', config.rateLimit.windowSeconds, 1],
+    ['AUTH_RATE_LIMIT_MAX', config.rateLimit.maxRequests, 1]
   ]
   for (const [envVar, value, min] of numeric) {
     if (!Number.isInteger(value) || value < min) {

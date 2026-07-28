@@ -4,19 +4,12 @@ import { config } from '../config/index.js'
 
 const MS_PER_SECOND = 1000
 
-const WINDOW_SECONDS = Number.parseInt(
-  process.env.AUTH_RATE_LIMIT_WINDOW_SECONDS ?? '60',
-  10
-)
+const WINDOW_SECONDS = config.rateLimit.windowSeconds
 
 // Effectively unreachable by default under NODE_ENV=test, so the rest of the
 // suite — which fires many requests at /auth/* routes — stays green;
 // rate-limit.test.js opts back in with an explicit AUTH_RATE_LIMIT_MAX.
-const MAX_REQUESTS = Number.parseInt(
-  process.env.AUTH_RATE_LIMIT_MAX ??
-    (config.isTest ? String(Number.MAX_SAFE_INTEGER) : '20'),
-  10
-)
+const MAX_REQUESTS = config.rateLimit.maxRequests
 
 function isAuthPath(path) {
   return path === '/auth' || path.startsWith('/auth/')
