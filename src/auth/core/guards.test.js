@@ -6,7 +6,7 @@ import { createServer } from '../../server.js'
 // Temporary routes exercising each guard directly, in the style of
 // session.test.js / auth.test.js — guards are framework pre-handlers, so
 // the only way to observe their 403-before-handler behaviour is a real
-// route (NODE_ENV=test auth bypass supplies credentials, test-users.js).
+// route (NODE_ENV=test auth bypass supplies credentials, auth/testing/users.js).
 function guardedRoute(pre) {
   return {
     method: 'GET',
@@ -26,7 +26,7 @@ describe('requireScope (FR-4)', () => {
 
   test('403s a user missing the required scope, before the handler runs', async () => {
     server = await createServer()
-    // Default canned user (test-users.js) has scope ['operator'].
+    // Default canned user (auth/testing/users.js) has scope ['operator'].
     server.route(guardedRoute(requireScope('admin')))
     await server.initialize()
 
@@ -91,7 +91,7 @@ describe('requireOrgMembership (§5.2, FR-4)', () => {
 
   test('200s a member of the target organisation', async () => {
     server = await createServer()
-    // Default canned user belongs to org-1 (test-users.js).
+    // Default canned user belongs to org-1 (auth/testing/users.js).
     server.route(guardedRoute(requireOrgMembership(() => 'org-1')))
     await server.initialize()
 

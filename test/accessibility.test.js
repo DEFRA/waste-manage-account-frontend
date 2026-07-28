@@ -70,7 +70,7 @@ describe('accessibility (NFR1)', () => {
     server = await createServer()
     await server.initialize()
 
-    // Default NODE_ENV=test canned user belongs to org-1 (test-users.js).
+    // Default NODE_ENV=test canned user belongs to org-1 (auth/testing/users.js).
     const res = await server.inject('/organisation/org-1')
     expect(res.statusCode).toBe(200)
 

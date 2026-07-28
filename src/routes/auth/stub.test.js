@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 
-import { getStubUsers } from '../../auth/stub-users.js'
+import { getStubUsers } from '../../auth/providers/stub/users.js'
 
 const DEFRA_ID_ENV = {
   DEFRA_ID_DISCOVERY_URL:

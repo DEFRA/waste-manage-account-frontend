@@ -66,7 +66,7 @@ describe('GET / — protected home content (spec §11.3)', () => {
     server = await createServer()
     await server.initialize()
 
-    // Default NODE_ENV=test canned user (test-users.js): Test Operator,
+    // Default NODE_ENV=test canned user (auth/testing/users.js): Test Operator,
     // a single relationship to org-1 which is also their current one.
     const res = await server.inject('/')
 

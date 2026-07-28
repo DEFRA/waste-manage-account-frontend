@@ -13,7 +13,7 @@ import {
   DefraIdProvider,
   DiscoveryError
 } from '../../auth/providers/defra-id/index.js'
-import { getStubUser, getStubUsers } from '../../auth/stub-users.js'
+import { getStubUser, getStubUsers } from '../../auth/providers/stub/users.js'
 
 // FR-6 dev stub: the fake-user chooser. Registered (router.js) only when
 // AUTH_STUB_ENABLED is true. A GOV.UK-styled form that works with no
