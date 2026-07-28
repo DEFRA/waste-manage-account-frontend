@@ -5,10 +5,9 @@ import {
   regenerateSession
 } from '../../auth/core/session.js'
 import {
-  DiscoveryError,
-  getDiscovery
-} from '../../auth/clients/oidc/discovery.js'
-import { config } from '../../config/index.js'
+  DefraIdProvider,
+  DiscoveryError
+} from '../../auth/providers/defra-id/index.js'
 
 // FR-5: read what's needed for federated logout, then destroy the local
 // session before anything else — a request that fails or bounces back
@@ -33,10 +32,11 @@ export const logout = {
       return h.redirect('/auth/signed-out')
     }
 
-    let discovery
+    let redirectUrl
     try {
-      discovery = await getDiscovery(config.defraId.discoveryUrl, {
-        logger: request.logger
+      redirectUrl = await DefraIdProvider.logoutRedirectUrl({
+        idToken,
+        request
       })
     } catch (err) {
       if (!(err instanceof DiscoveryError)) {
@@ -52,16 +52,7 @@ export const logout = {
       return h.redirect('/auth/signed-out')
     }
 
-    if (!discovery.end_session_endpoint) {
-      return h.redirect('/auth/signed-out')
-    }
-
-    const params = new URLSearchParams({
-      id_token_hint: idToken,
-      post_logout_redirect_uri: `${config.auth.callbackBaseUrl}/auth/signed-out`
-    })
-
-    return h.redirect(`${discovery.end_session_endpoint}?${params.toString()}`)
+    return h.redirect(redirectUrl ?? '/auth/signed-out')
   }
 }
 

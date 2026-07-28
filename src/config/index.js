@@ -72,15 +72,3 @@ export const config = {
     port: Number.parseInt(process.env.REDIS_PORT ?? '6379', 10)
   }
 }
-
-// FR-6 real-provider escape hatch: /auth/defra-id (real flow while stub mode
-// is on) only makes sense once every Defra ID onboarding value is present —
-// same fields validateConfig() requires when the stub is off.
-export function isDefraIdConfigured() {
-  return Boolean(
-    config.defraId.discoveryUrl &&
-    config.defraId.clientId &&
-    config.defraId.clientSecret &&
-    config.defraId.serviceId
-  )
-}

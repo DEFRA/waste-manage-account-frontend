@@ -1,6 +1,6 @@
 import Boom from '@hapi/boom'
 
-import { auditLoginSuccess } from '../../auth/core/audit.js'
+import { auditLoginFailure, auditLoginSuccess } from '../../auth/core/audit.js'
 import { randomToken } from '../../auth/core/random.js'
 import { safeReturnTo } from '../../auth/core/return-to.js'
 import {
@@ -9,9 +9,11 @@ import {
   setStubCsrf,
   takeStubCsrf
 } from '../../auth/core/session.js'
+import {
+  DefraIdProvider,
+  DiscoveryError
+} from '../../auth/providers/defra-id/index.js'
 import { getStubUser, getStubUsers } from '../../auth/stub-users.js'
-import { isDefraIdConfigured } from '../../config/index.js'
-import { initiateRealLogin } from './login.js'
 
 // FR-6 dev stub: the fake-user chooser. Registered (router.js) only when
 // AUTH_STUB_ENABLED is true. A GOV.UK-styled form that works with no
@@ -30,7 +32,7 @@ export const stubLogin = {
       returnTo: safeReturnTo(request.query.returnTo),
       // FR-6 real-provider escape hatch: only offered when real Defra ID
       // credentials are actually configured alongside the stub.
-      defraIdAvailable: isDefraIdConfigured()
+      defraIdAvailable: DefraIdProvider.enabled()
     })
   }
 }
@@ -70,11 +72,30 @@ export const stubLoginSubmit = {
 }
 
 // FR-6 real-provider escape hatch: registered (router.js) only when the
-// stub is enabled AND real Defra ID credentials are also configured. Reuses
-// the exact same real-flow initiation /auth/login uses when the stub is off.
+// stub is enabled AND real Defra ID credentials are also configured. Calls
+// DefraIdProvider.beginLogin directly (not routes/auth/login.js's wrapper —
+// spec-003 §11 WI-3 kills the last route→route import) to reuse the exact
+// same real-flow initiation /auth/login uses when the stub is off.
 export const defraId = {
   method: 'GET',
   path: '/auth/defra-id',
   options: { auth: false },
-  handler: initiateRealLogin
+  async handler(request, h) {
+    let result
+    try {
+      result = await DefraIdProvider.beginLogin(request)
+    } catch (error) {
+      if (!(error instanceof DiscoveryError)) {
+        throw error
+      }
+      request.logger.warn(
+        { err: error },
+        'sign-in unavailable: OIDC discovery failed'
+      )
+      auditLoginFailure(request.logger, 'discovery_failed')
+      return h.view('auth/sign-in-unavailable').code(502)
+    }
+
+    return h.redirect(result.redirectUrl)
+  }
 }

@@ -1,63 +1,27 @@
 import { auditLoginFailure } from '../../auth/core/audit.js'
-import { randomToken } from '../../auth/core/random.js'
 import { safeReturnTo } from '../../auth/core/return-to.js'
-import { setPreAuth } from '../../auth/core/session.js'
 import {
-  DiscoveryError,
-  getDiscovery
-} from '../../auth/clients/oidc/discovery.js'
-import {
-  codeChallengeS256,
-  createCodeVerifier
-} from '../../auth/clients/oidc/pkce.js'
+  DefraIdProvider,
+  DiscoveryError
+} from '../../auth/providers/defra-id/index.js'
 import { config } from '../../config/index.js'
 
-function buildAuthorizeUrl(discovery, { state, nonce, codeVerifier, query }) {
-  const params = new URLSearchParams({
-    client_id: config.defraId.clientId,
-    serviceId: config.defraId.serviceId,
-    response_type: 'code',
-    redirect_uri: `${config.auth.callbackBaseUrl}/auth/callback`,
-    // B2C convention: openid yields the id_token, offline_access a refresh
-    // token, and the client ID as a scope an access token for our own API.
-    scope: `openid offline_access ${config.defraId.clientId}`,
-    state,
-    nonce
-  })
-
-  // Omitted entirely (not sent empty) when DEFRA_ID_PKCE_ENABLED=false.
-  if (codeVerifier) {
-    params.set('code_challenge', codeChallengeS256(codeVerifier))
-    params.set('code_challenge_method', 'S256')
-  }
-
-  // Optional org-picker passthrough (FR-1): forwarded as-is when present.
-  if (query.forceReselection) {
-    params.set('forceReselection', query.forceReselection)
-  }
-  if (query.relationshipId) {
-    params.set('relationshipId', query.relationshipId)
-  }
-
-  return `${discovery.authorization_endpoint}?${params.toString()}`
-}
-
-// The real OIDC initiation (FR-1): discovery, state/nonce/PKCE generation,
-// and the 302 to the authorization endpoint. Shared by /auth/login (when the
-// stub is disabled) and /auth/defra-id (the stub-mode escape hatch to the
-// real flow, FR-6) so there is exactly one place that builds this redirect.
-export async function initiateRealLogin(request, h) {
-  let discovery
+// The real OIDC initiation (FR-1): delegates to DefraIdProvider.beginLogin
+// for discovery/state/nonce/PKCE/pre-auth-write, then either redirects to the
+// authorize endpoint or — on a discovery failure (§6.1, 502-class, never
+// falls back to hard-coded endpoints) — renders the "sign-in unavailable"
+// page. Not exported: `routes/auth/stub.js`'s /auth/defra-id escape hatch
+// calls DefraIdProvider.beginLogin directly rather than importing this
+// route-file-local wrapper (spec-003 §11 WI-3, killing the last route→route
+// import).
+async function initiateRealLogin(request, h) {
+  let result
   try {
-    discovery = await getDiscovery(config.defraId.discoveryUrl, {
-      logger: request.logger
-    })
+    result = await DefraIdProvider.beginLogin(request)
   } catch (error) {
     if (!(error instanceof DiscoveryError)) {
       throw error
     }
-    // §6.1: a discovery failure is 502-class and must never fall back to
-    // hard-coded endpoints.
     request.logger.warn(
       { err: error },
       'sign-in unavailable: OIDC discovery failed'
@@ -66,27 +30,7 @@ export async function initiateRealLogin(request, h) {
     return h.view('auth/sign-in-unavailable').code(502)
   }
 
-  const state = randomToken()
-  const nonce = randomToken()
-  const codeVerifier = config.defraId.pkceEnabled
-    ? createCodeVerifier()
-    : undefined
-
-  setPreAuth(request, {
-    state,
-    nonce,
-    codeVerifier,
-    returnTo: safeReturnTo(request.query.returnTo)
-  })
-
-  return h.redirect(
-    buildAuthorizeUrl(discovery, {
-      state,
-      nonce,
-      codeVerifier,
-      query: request.query
-    })
-  )
+  return h.redirect(result.redirectUrl)
 }
 
 export const login = {
