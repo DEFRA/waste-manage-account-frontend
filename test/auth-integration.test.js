@@ -185,6 +185,61 @@ describe('auth integration: full journey against the mock Defra ID (§13)', () =
     expect(replay.headers.location).toBe('/auth/login')
   })
 
+  test('missing_code: a callback with no code and no error param is rejected without an exchange', async () => {
+    idp = await startMockIdp()
+    server = await setupServer(idp)
+
+    const loginRes = await server.inject('/auth/login')
+    const preAuthCookie = sessionCookie(loginRes)
+    const state = new URL(loginRes.headers.location).searchParams.get('state')
+
+    const res = await server.inject({
+      url: `/auth/callback?state=${state}`,
+      headers: { cookie: preAuthCookie }
+    })
+
+    expect(res.statusCode).toBe(302)
+    expect(res.headers.location).toBe('/auth/login')
+  })
+
+  test('token_exchange_failed: the token endpoint rejecting the code redirects to login', async () => {
+    idp = await startMockIdp()
+    server = await setupServer(idp)
+
+    const { preAuthCookie, callbackQuery } = await driveAuthorize(server, idp, {
+      personaId: 'ben-carter'
+    })
+    // state still matches preAuth (passes the first check); the code is
+    // swapped for one the mock IdP has never issued, so /token responds
+    // invalid_grant and exchangeCode throws TokenExchangeError.
+    const invalidCodeQuery = callbackQuery.replace(
+      /code=[^&]+/,
+      'code=not-a-real-code'
+    )
+
+    const res = await server.inject({
+      url: `/auth/callback?${invalidCodeQuery}`,
+      headers: { cookie: preAuthCookie }
+    })
+
+    expect(res.statusCode).toBe(302)
+    expect(res.headers.location).toBe('/auth/login')
+  })
+
+  test('a discovery failure on /auth/login renders the sign-in-unavailable page', async () => {
+    // No mock IdP started for this test: nothing listens on this loopback
+    // port, so the very first (cold-cache) discovery fetch fails immediately
+    // with ECONNREFUSED and getDiscovery throws DiscoveryError.
+    server = await setupServer({
+      discoveryUrl: 'http://127.0.0.1:1/.well-known/openid-configuration'
+    })
+
+    const res = await server.inject('/auth/login')
+
+    expect(res.statusCode).toBe(502)
+    expect(res.payload).toContain('Sorry, sign-in is unavailable')
+  })
+
   test('an IdP error param is handled without attempting an exchange', async () => {
     idp = await startMockIdp()
     server = await setupServer(idp)
@@ -346,6 +401,43 @@ describe('auth integration: stub login (FR-6)', () => {
     })
 
     expect(res.statusCode).toBe(403)
+  })
+
+  test('logout with a stub session (no id_token) redirects straight to /auth/signed-out', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('ENVIRONMENT', 'local')
+    vi.stubEnv('SESSION_SECRET', 'x'.repeat(32))
+    vi.stubEnv('SESSION_CACHE_ENGINE', 'memory')
+    vi.stubEnv('AUTH_STUB_ENABLED', 'true')
+    vi.resetModules()
+    const { createServer: freshCreateServer } = await import('../src/server.js')
+    server = await freshCreateServer()
+    await server.initialize()
+
+    const chooserRes = await server.inject('/auth/stub/login')
+    const cookie = sessionCookie(chooserRes)
+    const csrfMatch = chooserRes.payload.match(
+      /name="csrfToken" value="([^"]+)"/
+    )
+
+    const submitRes = await server.inject({
+      method: 'POST',
+      url: '/auth/stub/login',
+      headers: { cookie },
+      payload: { csrfToken: csrfMatch[1], userId: 'ben-carter', returnTo: '/' }
+    })
+    const sessionCookieValue = sessionCookie(submitRes)
+
+    // Distinct from the real-flow happy-path test's logout: this session
+    // carries no id_token, so the route must skip federated logout (no
+    // end_session_endpoint call) and land straight on the local page.
+    const logoutRes = await server.inject({
+      url: '/auth/logout',
+      headers: { cookie: sessionCookieValue }
+    })
+
+    expect(logoutRes.statusCode).toBe(302)
+    expect(logoutRes.headers.location).toBe('/auth/signed-out')
   })
 
   test('stub routes are absent (404) when the stub is disabled', async () => {
