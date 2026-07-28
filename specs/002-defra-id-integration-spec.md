@@ -202,26 +202,38 @@ Application user model (session shape):
   name: string,          // `${firstName} ${lastName}`.trim()
   contactId: string,
   currentRelationshipId: string,
-  relationships: string[],
+  relationships: Array<{ relationshipId: string, organisationId: string, organisationName: string }>,
   roles: string[],
   userType: 'operator',  // literal for this integration
   scope: ['operator']    // derived, for route guards
 }
 ```
 
+> **Note (28 Jul 2026):** `relationships` holds **parsed structured objects**, not the raw
+> colon-delimited claim strings. `specs/003-auth-refactor.md` §2.4 moved the wire-format parse
+> into the Defra ID provider layer (`auth/providers/defra-id/relationships.js`) so the
+> provider-neutral `auth/core/organisation-access.js` only ever sees this structured shape. The
+> raw `id_token` claim is still colon-delimited (§5.2 below) — that is the provider's _input_, not
+> the session shape.
+
 ### 5.2 Relationships claim
 
-Each entry is a colon-delimited string:
+Each entry in the raw `id_token` claim is a colon-delimited string:
 
 ```
 {relationshipId}:{organisationId}:{organisationName}[:...additional segments]
 ```
 
-Required helpers (pure functions, unit-tested):
+The wire-format parse and the lookups now live in **separate layers** (spec-003 §2.4): the
+provider parses the colon format into structured objects
+(`auth/providers/defra-id/relationships.js` → `parseDefraRelationships`), and the
+provider-neutral lookups in `auth/core/organisation-access.js` operate over that structured shape
+only — they never see a colon. Required helpers (pure functions, unit-tested):
 
-- `getUserOrganisationIds(user)` → array of organisation IDs (second segment), skipping malformed entries.
-- `userIsRelatedToOrg(user, organisationId)` → boolean; **fail closed** on `null`/`undefined` target.
-- `getCurrentRelationship(user)` → parsed `{ relationshipId, organisationId, organisationName }` for `currentRelationshipId`, or `null`.
+- `getUserOrganisationIds(user)` → array of `organisationId`s, skipping malformed entries.
+- `userIsRelatedToOrg(user, organisationId)` → boolean; **fail closed** on `null`/`undefined`/empty target.
+- `getCurrentRelationship(user)` → the structured relationship `{ relationshipId, organisationId, organisationName }` whose `relationshipId` equals `currentRelationshipId`, or `null`.
+- `getUserRelationships(user)` → the full list of valid structured relationships, **display-only**; authorisation must still go through `userIsRelatedToOrg`.
 
 ⚠️ **ID-space warning (learned in the reference project):** organisation IDs in your own application's URLs or database are _your_ IDs, not Defra IDs. Before comparing, resolve your internal organisation to its linked Defra organisation ID via your own mapping, and pass **that** to the helper. Never compare a URL/database ID directly against relationship IDs. Document this at the helper definition.
 
