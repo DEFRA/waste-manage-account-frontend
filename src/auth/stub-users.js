@@ -1,8 +1,8 @@
 // Predefined fake users for the FR-6 stub login chooser. Profiles match the
 // spec §5 session shape exactly (no id_token — that key only exists after a
-// real OIDC exchange) and carry realistic colon-delimited `relationships`
-// strings so organisation-access logic downstream is exercised the same way
-// it would be against a real Defra ID token.
+// real OIDC exchange) and carry realistic structured `relationships`
+// objects (spec-003 §2.4) so organisation-access logic downstream is
+// exercised the same way it would be against a real Defra ID token.
 
 const STUB_USERS = [
   {
@@ -17,8 +17,16 @@ const STUB_USERS = [
       contactId: 'contact-amina-khan',
       currentRelationshipId: 'rel-amina-1',
       relationships: [
-        'rel-amina-1:org-acme:Acme Recycling Ltd',
-        'rel-amina-2:org-beta:Beta Waste Ltd'
+        {
+          relationshipId: 'rel-amina-1',
+          organisationId: 'org-acme',
+          organisationName: 'Acme Recycling Ltd'
+        },
+        {
+          relationshipId: 'rel-amina-2',
+          organisationId: 'org-beta',
+          organisationName: 'Beta Waste Ltd'
+        }
       ],
       scope: ['operator']
     }
@@ -34,7 +42,13 @@ const STUB_USERS = [
       roles: [],
       contactId: 'contact-ben-carter',
       currentRelationshipId: 'rel-ben-1',
-      relationships: ['rel-ben-1:org-gamma:Gamma Skips Ltd'],
+      relationships: [
+        {
+          relationshipId: 'rel-ben-1',
+          organisationId: 'org-gamma',
+          organisationName: 'Gamma Skips Ltd'
+        }
+      ],
       scope: ['operator']
     }
   },

@@ -176,7 +176,13 @@ describe('GET /auth/callback (FR-2)', () => {
       roles: ['submitter'],
       contactId: 'contact-1',
       currentRelationshipId: 'rel-1',
-      relationships: ['rel-1:org-1:Acme Recycling Ltd'],
+      relationships: [
+        {
+          relationshipId: 'rel-1',
+          organisationId: 'org-1',
+          organisationName: 'Acme Recycling Ltd'
+        }
+      ],
       scope: ['operator']
     })
   })

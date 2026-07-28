@@ -1,5 +1,5 @@
 import { requireOrgMembership } from '../auth/core/guards.js'
-import { getUserOrganisationIds } from '../auth/organisation-access.js'
+import { getUserOrganisationIds } from '../auth/core/organisation-access.js'
 
 // Example org-guarded route (FR-4, §5.2), reused by the demo journey. No org
 // database exists in this app, so the URL param is used directly as the

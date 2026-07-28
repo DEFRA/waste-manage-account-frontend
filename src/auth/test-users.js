@@ -3,7 +3,8 @@
 // driving a real or stub login; an absent/unrecognised header falls back to
 // the default so every existing test needs no header at all. Shape matches
 // the spec §5 session profile so business routes see identical credentials
-// in test, stub, and real-login modes.
+// in test, stub, and real-login modes — relationships are structured objects
+// (spec-003 §2.4), matching what a real login now stores.
 
 const TEST_USERS = {
   operator: {
@@ -14,7 +15,13 @@ const TEST_USERS = {
     roles: [],
     contactId: 'contact-operator',
     currentRelationshipId: 'rel-1',
-    relationships: ['rel-1:org-1:Acme Recycling Ltd'],
+    relationships: [
+      {
+        relationshipId: 'rel-1',
+        organisationId: 'org-1',
+        organisationName: 'Acme Recycling Ltd'
+      }
+    ],
     scope: ['operator']
   },
   'multi-org-operator': {
@@ -26,8 +33,16 @@ const TEST_USERS = {
     contactId: 'contact-multi-org',
     currentRelationshipId: 'rel-2',
     relationships: [
-      'rel-2:org-2:Beta Waste Ltd',
-      'rel-3:org-3:Gamma Skips Ltd'
+      {
+        relationshipId: 'rel-2',
+        organisationId: 'org-2',
+        organisationName: 'Beta Waste Ltd'
+      },
+      {
+        relationshipId: 'rel-3',
+        organisationId: 'org-3',
+        organisationName: 'Gamma Skips Ltd'
+      }
     ],
     scope: ['operator']
   },
@@ -41,7 +56,13 @@ const TEST_USERS = {
     roles: ['waste-manager'],
     contactId: 'contact-org-manager',
     currentRelationshipId: 'rel-4',
-    relationships: ['rel-4:org-4:Delta Waste Ltd'],
+    relationships: [
+      {
+        relationshipId: 'rel-4',
+        organisationId: 'org-4',
+        organisationName: 'Delta Waste Ltd'
+      }
+    ],
     scope: ['operator']
   },
   // Fixture for the §5.2 fail-closed organisation guard: a user with no

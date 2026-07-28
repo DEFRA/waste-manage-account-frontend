@@ -1,7 +1,7 @@
 import {
   getCurrentRelationship,
   getUserRelationships
-} from '../auth/organisation-access.js'
+} from '../auth/core/organisation-access.js'
 
 // FR1: the Hello World page is rendered entirely server-side so it works
 // without client-side JavaScript (progressive enhancement).

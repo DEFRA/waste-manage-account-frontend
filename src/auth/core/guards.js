@@ -1,7 +1,7 @@
 import Boom from '@hapi/boom'
 
 import { auditAccessDenied } from './audit.js'
-import { userIsRelatedToOrg } from '../organisation-access.js'
+import { userIsRelatedToOrg } from './organisation-access.js'
 
 // FR-4: scope/role/organisation checks happen before the handler runs, never
 // inside a controller. Each guard below returns a Hapi pre-handler method
