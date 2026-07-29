@@ -44,7 +44,7 @@
     "undici": "8.7.0"
   },
   "devDependencies": {
-    "@babel/preset-env": "7.29.2",
+    "@babel/preset-env": "8.0.2",
     "@vitest/coverage-v8": "4.1.8",
     "axe-core": "4.12.1",
     "eslint": "9.39.2",
