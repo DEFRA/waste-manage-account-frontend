@@ -103,6 +103,10 @@ describe('auth plugin — deny by default outside NODE_ENV=test (FR-3)', () => {
   async function createNonTestServer() {
     vi.stubEnv('NODE_ENV', 'production')
     vi.stubEnv('SESSION_SECRET', 'x'.repeat(32))
+    // NODE_ENV=production defaults the session cache to Redis, which would
+    // make server.initialize() dial a real Redis (absent on CI runners) —
+    // these tests are about the auth scheme, so keep the cache in-memory.
+    vi.stubEnv('SESSION_CACHE_ENGINE', 'memory')
     vi.resetModules()
 
     const [{ createServer: freshCreateServer }, sessionModule] =

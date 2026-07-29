@@ -137,6 +137,10 @@ describe('GET / — deny by default outside NODE_ENV=test (FR-3)', () => {
     // reimporting fresh (same idiom as validate.test.js / session.test.js).
     vi.stubEnv('NODE_ENV', 'production')
     vi.stubEnv('SESSION_SECRET', 'x'.repeat(32))
+    // NODE_ENV=production defaults the session cache to Redis, which would
+    // make server.initialize() dial a real Redis (absent on CI runners) —
+    // this test is about the redirect, so keep the cache in-memory.
+    vi.stubEnv('SESSION_CACHE_ENGINE', 'memory')
     vi.resetModules()
     const { createServer: freshCreateServer } = await import('../server.js')
 
