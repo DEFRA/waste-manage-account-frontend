@@ -11,6 +11,21 @@ on:
       - ready_for_review
 
 jobs:
+  # Defra security standard: block merges that introduce dependencies with
+  # known vulnerabilities (checked against the GitHub Advisory Database).
+  # https://defra.github.io/software-development-standards/standards/security_standards/
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
   pr-validator:
     name: Run Pull Request Checks
     runs-on: ubuntu-latest
@@ -18,7 +33,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Test code and Create Test Coverage Reports
+      - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
@@ -27,7 +42,8 @@ jobs:
       - name: Security audit
         run: npm run security-audit
 
-      - run: |
+      - name: Build, format check, lint and test
+        run: |
           npm ci
           npm run build:frontend
           npm run format:check
@@ -37,12 +53,15 @@ jobs:
       - name: Test Docker Image Build
         run: |
           set +e
-          docker build --no-cache --tag cdp-node-frontend-template .
+          docker build --no-cache --tag waste-manage-account-frontend .
           exit $?
 
-#      - name: SonarCloud Scan
-#        if: github.actor != 'dependabot[bot]'
-#        uses: SonarSource/sonarqube-scan-action@v5.3.1 #  (or check latest version on https://github.com/marketplace/actions/official-sonarqube-scan)
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # Defra common coding standard: all code is checked for quality via the
+      # SonarQube Cloud quality gate. Requires the SONAR_TOKEN repository
+      # secret (from SonarCloud project onboarding) to be configured.
+      - name: SonarCloud Scan
+        if: github.actor != 'dependabot[bot]'
+        uses: SonarSource/sonarqube-scan-action@v5.3.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

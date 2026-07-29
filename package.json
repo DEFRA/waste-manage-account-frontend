@@ -16,6 +16,7 @@
     "demo:start": "node --env-file-if-exists=.env scripts/demo.js",
     "test": "TZ=UTC NODE_ENV=test vitest run --coverage",
     "test:watch": "TZ=UTC NODE_ENV=test vitest",
+    "security-audit": "npm audit --omit=dev --audit-level=high",
     "lint": "run-s lint:js lint:scss",
     "lint:js": "eslint .",
     "lint:scss": "stylelint \"src/**/*.scss\" --allow-empty-input",

@@ -235,9 +235,11 @@ the CDP local development stack.
 - Releases are tagged with semantic versioning (e.g. `v0.1.0`) and the version
   is kept in [`package.json`](package.json).
 
-Pull requests run CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+Pull requests run CI
+([`.github/workflows/check-pull-request.yml`](.github/workflows/check-pull-request.yml)):
 `npm ci`, asset build, Prettier format check, ESLint/Stylelint, the Vitest
-suite, and the SonarCloud quality gate.
+suite (which fails below 90% coverage), a dependency security audit and
+review, a Docker image build, and the SonarCloud quality gate.
 
 ## Licence
 
