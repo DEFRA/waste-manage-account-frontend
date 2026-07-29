@@ -1,0 +1,14 @@
+# Automated dependency checks for supply-chain hygiene (spec 001 NFR3).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # Mirror the npm min-release-age=7 policy in .npmrc: avoid picking up
+    # releases younger than 7 days, which are the most likely to be
+    # compromised or yanked.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build

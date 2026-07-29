@@ -1,3 +1,35 @@
+# Dependencies and build output are produced inside the image
 node_modules
-Dockerfile
+.public
+.server
+.vite
+dist
 coverage
+
+# Logs
+logs
+*.log
+
+# Environment and local secrets (never bake secrets into an image — spec NFR5)
+.env
+.env.*
+!.env.example
+
+# VCS, hooks, and container files themselves
+.git
+.husky
+Dockerfile
+.dockerignore
+compose.yml
+docker-compose.yml
+compose
+
+# OS and editor cruft
+.DS_Store
+
+# Autonomous loop artifacts (local-only)
+IMPLEMENTATION_PLAN.md
+PROGRESS.md
+PROMPT_plan.md
+PROMPT_build.md
+.ralph

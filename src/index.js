@@ -1,13 +1,21 @@
 import process from 'node:process'
 
-import { startServer } from '#/server/common/helpers/start-server.js'
-import { createLogger } from '#/server/common/helpers/logging/logger.js'
+import { createServer } from './server.js'
 
-await startServer()
+const server = await createServer()
+
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.once(signal, () => {
+    server
+      .stop({ timeout: 10_000 })
+      .then(() => process.exit(0))
+      .catch(() => process.exit(1))
+  })
+}
 
 process.on('unhandledRejection', (error) => {
-  const logger = createLogger()
-  logger.info('Unhandled rejection')
-  logger.error(error)
   process.exitCode = 1
+  throw error
 })
+
+await server.start()

@@ -1,12 +1,36 @@
-.DS_Store
-.npm/
-.vscode
-.idea
-.public
-node_modules
-npm-debug.log
-coverage
-.cache
-.envrc
-tsconfig.tsbuildinfo
+# Autonomous loop artifacts (local-only)
+IMPLEMENTATION_PLAN.md
+PROGRESS.md
+.ralph/
+PROMPT_plan.md
+PROMPT_build.md
+
+# Dependencies
+node_modules/
+
+# Build output (Vite client assets + compiled server)
+dist/
+.public/
+.server/
+.vite/
+
+# Test coverage
+coverage/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment and local secrets (never commit secrets — spec NFR5)
 .env
+.env.*
+!.env.example
+
+# OS and editor cruft
+.DS_Store
+
+# Sandbox deletion staging (files moved here instead of deleted; safe to remove)
+_to_delete/

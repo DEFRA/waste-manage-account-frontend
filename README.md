@@ -1,221 +1,211 @@
 # waste-manage-account-frontend
 
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_waste-manage-account-frontend&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=DEFRA_waste-manage-account-frontend)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_waste-manage-account-frontend&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DEFRA_waste-manage-account-frontend)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_waste-manage-account-frontend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=DEFRA_waste-manage-account-frontend)
+GOV.UK frontend for the Defra waste management account service.
 
-Core delivery platform Node.js Frontend Template.
+The service will become the public-facing account area for managing waste
+services. This repository is built from the
+[DEFRA CDP Node.js Frontend Template](https://github.com/DEFRA/cdp-node-frontend-template)
+and currently serves a GOV.UK-styled home page at `/`, a CDP health check at
+`/health`, GOV.UK-styled 404/500 error pages, and sign-in to the service via
+Defra ID, Defra's OpenID Connect identity platform (see
+[`specs/002-defra-id-integration-spec.md`](specs/002-defra-id-integration-spec.md)).
+Every route other than `/health` and `/public/*` requires a signed-in session.
 
-- [Requirements](#requirements)
-  - [Node.js](#nodejs)
-- [Server-side Caching](#server-side-caching)
-- [Redis](#redis)
-- [Local Development](#local-development)
-  - [Setup](#setup)
-  - [Development](#development)
-  - [Production](#production)
-  - [Npm scripts](#npm-scripts)
-  - [Update dependencies](#update-dependencies)
-  - [Formatting](#formatting)
-    - [Windows prettier issue](#windows-prettier-issue)
-- [Docker](#docker)
-  - [Development image](#development-image)
-  - [Production image](#production-image)
-  - [Docker Compose](#docker-compose)
-  - [Dependabot](#dependabot)
-  - [SonarCloud](#sonarcloud)
-- [Licence](#licence)
-  - [About the licence](#about-the-licence)
+The stack is Hapi + Nunjucks + [GOV.UK Frontend](https://design-system.service.gov.uk/),
+with Vite for client asset builds, Vitest for tests, and structured pino
+logging. All work follows the
+[Defra Software Development Standards](https://defra.github.io/software-development-standards/).
 
-## Requirements
+## Prerequisites
 
-### Node.js
+- [Node.js](https://nodejs.org/) Active LTS (currently v24), ideally managed
+  with [nvm](https://github.com/nvm-sh/nvm) — the version is pinned in
+  [`.nvmrc`](.nvmrc)
+- [npm](https://docs.npmjs.com/) v11+ (bundled with Node 24)
+- [Docker](https://www.docker.com/) with Docker Compose (optional — only needed
+  for container builds and the local stack)
 
-Please install Node Version Manager [nvm](https://github.com/creationix/nvm)
-
-To use the correct version of Node.js for this application, via nvm:
+## Setup
 
 ```bash
-cd waste-manage-account-frontend
 nvm use
-```
-
-## Server-side Caching
-
-We use Catbox for server-side caching. By default the service will use CatboxRedis when deployed and CatboxMemory for
-local development.
-You can override the default behaviour by setting the `SESSION_CACHE_ENGINE` environment variable to either `redis` or
-`memory`.
-
-Please note: CatboxMemory (`memory`) is _not_ suitable for production use! The cache will not be shared between each
-instance of the service and it will not persist between restarts.
-
-## Redis
-
-Redis is an in-memory key-value store. Every instance of a service has access to the same Redis key-value store similar
-to how services might have a database (or MongoDB). All frontend services are given access to a namespaced prefixed that
-matches the service name. e.g. `my-service` will have access to everything in Redis that is prefixed with `my-service`.
-
-If your service does not require a session cache to be shared between instances or if you don't require Redis, you can
-disable setting `SESSION_CACHE_ENGINE=false` or changing the default value in `src/config/index.js`.
-
-## Proxy
-
-We are using forward-proxy which is set up by default. To make use of this: `import { fetch } from 'undici'` then
-because of the `setGlobalDispatcher(new ProxyAgent(proxyUrl))` calls will use the ProxyAgent Dispatcher
-
-If you are not using Wreck, Axios or Undici or a similar http that uses `Request`. Then you may have to provide the
-proxy dispatcher:
-
-To add the dispatcher to your own client:
-
-```javascript
-import { ProxyAgent } from 'undici'
-
-return await fetch(url, {
-  dispatcher: new ProxyAgent({
-    uri: proxyUrl,
-    keepAliveTimeout: 10,
-    keepAliveMaxTimeout: 10
-  })
-})
-```
-
-## Local Development
-
-### Setup
-
-Install application dependencies:
-
-```bash
 npm install
-```
-
-### Git hooks
-
-Install git hooks (optional)
-
-```bash
 npm run git:hooks
 ```
 
-### Development
+> **Note:** `npm run git:hooks` is a required manual step. The repository's
+> [`.npmrc`](.npmrc) sets `ignore-scripts=true` (a Defra supply-chain security
+> setting), so Husky cannot self-install via a `prepare` script. The hooks run
+> format/lint checks on commit and tests on push.
 
-To run the application in `development` mode run:
+## Running in development
 
 ```bash
+npm run build:frontend
 npm run dev
 ```
 
-### Production
+This builds the client assets (GOV.UK Frontend styles into `.public/`) and
+starts the server on http://localhost:3000 with nodemon reloading on `js`,
+`njk`, and `json` changes.
 
-To mimic the application running in `production` mode locally run:
+### Configuration
+
+All configuration comes from environment variables — no secrets are ever
+committed to this repository. Copy [`.env.example`](.env.example) to `.env`
+(git-ignored) as a starting point; every variable below is documented there
+with its default and purpose.
+
+| Variable               | Default                               | Description                                    |
+| ---------------------- | ------------------------------------- | ---------------------------------------------- |
+| `PORT`                 | `3000`                                | Port the server listens on                     |
+| `HOST`                 | `0.0.0.0`                             | Address the server binds to                    |
+| `LOG_LEVEL`            | `info`                                | pino log level                                 |
+| `SESSION_CACHE_ENGINE` | `memory` (`redis` when in production) | Catbox cache engine: `memory` or `redis`       |
+| `SESSION_CACHE_NAME`   | `session`                             | Name of the provisioned Catbox cache           |
+| `REDIS_HOST`           | `127.0.0.1`                           | Redis host (only used with the `redis` engine) |
+| `REDIS_PORT`           | `6379`                                | Redis port (only used with the `redis` engine) |
+
+#### Defra ID authentication (spec §9)
+
+| Variable                               | Default                          | Description                                                                                                             |
+| -------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `ENVIRONMENT`                          | `local`                          | `local` \| `dev` \| `test` \| `pre-prod` \| `prod` — drives the validation rules below                                  |
+| `AUTH_STUB_ENABLED`                    | `true` unless `ENVIRONMENT=prod` | Fake sign-in with predefined canned users, no IdP required — refused at boot when `ENVIRONMENT=prod` even if set `true` |
+| `AUTH_CALLBACK_BASE_URL`               | `http://localhost:3000`          | Public base URL used to build the OIDC redirect URI; must be `https://` when `ENVIRONMENT` is `pre-prod` or `prod`      |
+| `SESSION_SECRET`                       | — (required)                     | Cookie signing key, ≥ 32 chars — required everywhere except `NODE_ENV=test`                                             |
+| `SESSION_IDLE_TTL_MINUTES`             | `240`                            | Idle session timeout                                                                                                    |
+| `SESSION_ABSOLUTE_TTL_MINUTES`         | `720`                            | Absolute session lifetime                                                                                               |
+| `DEFRA_ID_DISCOVERY_URL`               | —                                | Full `.well-known/openid-configuration` URL — required whenever `AUTH_STUB_ENABLED=false`                               |
+| `DEFRA_ID_CLIENT_ID`                   | —                                | Client ID from Defra ID onboarding — required whenever `AUTH_STUB_ENABLED=false`                                        |
+| `DEFRA_ID_CLIENT_SECRET`               | —                                | Client secret from Defra ID onboarding — required whenever `AUTH_STUB_ENABLED=false`                                    |
+| `DEFRA_ID_SERVICE_ID`                  | —                                | Service ID from Defra ID onboarding — required whenever `AUTH_STUB_ENABLED=false`                                       |
+| `DEFRA_ID_PKCE_ENABLED`                | `true`                           | Send PKCE (`code_challenge`/`code_verifier`) params                                                                     |
+| `DEFRA_ID_CLOCK_TOLERANCE_SECONDS`     | `60`                             | Allowed clock skew when checking `id_token` `exp`/`nbf`                                                                 |
+| `DEFRA_ID_DISCOVERY_CACHE_TTL_SECONDS` | `3600`                           | How long a fetched discovery document is cached                                                                         |
+| `DEFRA_ID_REFRESH_ENABLED`             | `false`                          | Enables refresh-token handling — roadmap extension, not used in v1                                                      |
+
+`createServer()` runs a fail-fast `validateConfig()` check
+(`src/config/validate.js`) against this matrix at boot: an invalid
+combination (e.g. stub disabled with no client credentials, or a
+misconfigured `ENVIRONMENT`) throws immediately instead of surfacing as a
+broken sign-in flow later.
+
+With no `.env` at all, the app boots in stub mode: every route redirects
+unauthenticated visitors to a chooser of predefined fake users
+(`/auth/stub/login`) rather than a real IdP — this is the default for
+`npm run dev`. To exercise the real Defra ID OIDC flow with zero real
+credentials, use the demo below; to point at real Defra ID (e.g. CPDEV), set
+`AUTH_STUB_ENABLED=false` plus the four `DEFRA_ID_*` onboarding values and an
+`https://` `AUTH_CALLBACK_BASE_URL`.
+
+### Demo: Defra ID sign-in
 
 ```bash
+npm install
+npm run demo
+```
+
+This builds the client assets, starts an in-process mock Defra ID on `:3939`
+(`test/helpers/mock-idp.js` — the same mock the integration tests use), and
+starts the app on `:3000` with stub mode off, so the real OIDC code path runs
+end to end against it. No external network access or real credentials are
+involved (spec §11).
+
+1. Open <http://localhost:3000/> — redirected to `/auth/login`, which
+   redirects to the mock IdP's persona picker (the real OIDC authorize
+   redirect, with `state`/`nonce`/PKCE visible on the URL).
+2. Pick a persona (e.g. _Amina Khan — Acme Recycling Ltd + Beta Waste Ltd_) —
+   the mock IdP redirects back with a code, the app exchanges it, verifies the
+   RS256 `id_token` against the mock's JWKS, and builds the session.
+3. The home page shows the verified claims, parsed relationships, and current
+   organisation.
+4. Visit `/organisation/org-acme` (a member of that persona's organisation — 200) and `/organisation/org-does-not-exist` (403) to see the fail-closed
+   organisation guard.
+5. Sign out — federated logout via the mock's end-session endpoint, landing on
+   `/auth/signed-out`.
+6. Try the mock's "tamper" toggle on the persona picker, or replay a callback
+   URL, to see both rejected.
+
+To see the no-IdP path instead, stop the demo and run
+`npm run build:frontend && npm run dev` — stub mode is on by default outside
+`ENVIRONMENT=prod`, so `/auth/login` goes straight to the stub chooser. Run
+`npm test` to see the `NODE_ENV=test` auth bypass used by the automated suite.
+
+Switching either the demo or a stub-mode run to real Defra ID (CPDEV) only
+ever requires environment variable changes — no code changes.
+
+## Running the tests
+
+```bash
+npm test
+```
+
+Runs the Vitest suite, including route tests for `/`, `/health`, and the error
+pages, plus an automated axe-core accessibility check of the home page.
+`npm run test:watch` runs the suite in watch mode.
+
+### Linting and formatting
+
+```bash
+npm run lint          # ESLint (neostandard, unmodified) + Stylelint (GDS)
+npm run format:check  # Prettier check
+npm run format        # Prettier write
+```
+
+## Running in production mode
+
+```bash
+npm run build:frontend
 npm start
 ```
 
-### Npm scripts
+### Docker
 
-All available Npm scripts can be seen in [package.json](./package.json)
-To view them in your command line run:
-
-```bash
-npm run
-```
-
-### Update dependencies
-
-To update dependencies use [npm-check-updates](https://github.com/raineorshine/npm-check-updates):
-
-> The following script is a good start. Check out all the options on
-> the [npm-check-updates](https://github.com/raineorshine/npm-check-updates)
+The [`Dockerfile`](Dockerfile) has `development` and `production` targets:
 
 ```bash
-ncu --interactive --format group
+docker build --target development --tag waste-manage-account-frontend:dev .
+docker build --target production --tag waste-manage-account-frontend .
+docker run -e SESSION_CACHE_ENGINE=memory -p 3000:3000 waste-manage-account-frontend
 ```
 
-### Formatting
+The production image defaults to the Redis session cache and fails fast if
+Redis is unreachable — pass `SESSION_CACHE_ENGINE=memory` for a standalone run,
+or use the Compose stack below which provides Redis.
 
-#### Windows prettier issue
-
-If you are having issues with formatting of line breaks on Windows update your global git config by running:
-
-```bash
-git config --global core.autocrlf false
-```
-
-## Docker
-
-### Development image
-
-> [!TIP]
-> For Apple Silicon users, you may need to add `--platform linux/amd64` to the `docker run` command to ensure
-> compatibility fEx: `docker build --platform=linux/arm64 --no-cache --tag waste-manage-account-frontend`
-
-Build:
-
-```bash
-docker build --target development --no-cache --tag waste-manage-account-frontend:development .
-```
-
-Run:
-
-```bash
-docker run -p 3000:3000 waste-manage-account-frontend:development
-```
-
-### Production image
-
-Build:
-
-```bash
-docker build --no-cache --tag waste-manage-account-frontend .
-```
-
-Run:
-
-```bash
-docker run -p 3000:3000 waste-manage-account-frontend
-```
-
-### Docker Compose
-
-A local environment with:
-
-- Floci (replacing Localstack) for AWS services (S3, SQS)
-- Redis
-- MongoDB
-- This service.
-- A commented out backend example.
+### Docker Compose local stack
 
 ```bash
 docker compose up --build -d
 ```
 
-### Dependabot
+Starts the frontend with Redis, MongoDB, and Floci (AWS emulation), matching
+the CDP local development stack.
 
-We have added an example dependabot configuration file to the repository. You can enable it by renaming
-the [.github/example.dependabot.yml](.github/example.dependabot.yml) to `.github/dependabot.yml`
+## Branching and contributing
 
-### SonarCloud
+- `main` is protected: changes land via pull request with required status
+  checks (lint, format, tests) and at least one approving review — no direct
+  pushes.
+- Work happens on short-lived feature branches created from `main` and merged
+  back via pull request, per the
+  [Defra version control standards](https://defra.github.io/software-development-standards/standards/version_control_standards/).
+- Commits follow conventional-commit style (`feat:`, `fix:`, `build:`,
+  `chore:`, ...), and the Husky hooks enforce the quality gates locally before
+  commit and push.
+- Releases are tagged with semantic versioning (e.g. `v0.1.0`) and the version
+  is kept in [`package.json`](package.json).
 
-Instructions for setting up SonarCloud can be found in [sonar-project.properties](./sonar-project.properties).
+Pull requests run CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+`npm ci`, asset build, Prettier format check, ESLint/Stylelint, the Vitest
+suite, and the SonarCloud quality gate.
 
 ## Licence
 
-THIS INFORMATION IS LICENSED UNDER THE CONDITIONS OF THE OPEN GOVERNMENT LICENCE found at:
+This project is licensed under the
+[Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
+— see [LICENSE](LICENSE).
 
-<http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3>
-
-The following attribution statement MUST be cited in your products and applications when using this information.
-
-> Contains public sector information licensed under the Open Government license v3
-
-### About the licence
-
-The Open Government Licence (OGL) was developed by the Controller of Her Majesty's Stationery Office (HMSO) to enable
-information providers in the public sector to license the use and re-use of their information under a common open
-licence.
-
-It is designed to encourage use and re-use of information freely and flexibly, with only a few conditions.
+> Contains public sector information licensed under the Open Government
+> Licence v3.0.

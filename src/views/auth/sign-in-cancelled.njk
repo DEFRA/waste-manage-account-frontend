@@ -1,0 +1,9 @@
+{% extends "layouts/page.njk" %}
+
+{% block pageTitle %}Sign-in cancelled – {{ serviceName }} – GOV.UK{% endblock %}
+
+{% block content %}
+  <h1 class="govuk-heading-xl">Sign-in was not completed</h1>
+  <p class="govuk-body">You cancelled or did not complete signing in.</p>
+  <p class="govuk-body"><a class="govuk-link" href="/auth/login">Try signing in again</a></p>
+{% endblock %}

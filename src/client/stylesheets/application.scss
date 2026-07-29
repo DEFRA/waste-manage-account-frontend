@@ -1,7 +1,6 @@
-@use "govuk-frontend";
-
-@use "variables";
-@use "helpers";
-@use "core";
-@use "components";
-@use "partials";
+// Fonts and images ship under /public/assets (see the static-files plugin),
+// not govuk-frontend's default /assets, so the assets path must be configured
+// before any govuk module is loaded.
+@use "govuk-frontend/dist/govuk/index" as * with (
+  $govuk-assets-path: "/public/assets/"
+);

@@ -1,0 +1,15 @@
+{% extends "layouts/page.njk" %}
+
+{% block pageTitle %}Organisation – {{ serviceName }} – GOV.UK{% endblock %}
+
+{% block content %}
+  <h1 class="govuk-heading-xl">Organisation {{ organisationId }}</h1>
+  <p class="govuk-body">You are a member of this organisation.</p>
+
+  <h2 class="govuk-heading-m">Your organisations</h2>
+  <ul class="govuk-list govuk-list--bullet">
+    {% for id in organisationIds %}
+      <li>{{ id }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

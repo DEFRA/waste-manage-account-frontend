@@ -1,0 +1,23 @@
+{% extends "govuk/template.njk" %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+
+{% block pageTitle %}{{ serviceName }} – GOV.UK{% endblock %}
+
+{% block head %}
+  <link href="/public/stylesheets/application.css" rel="stylesheet">
+{% endblock %}
+
+{# Account nav (FR-3/FR-5): isAuthenticated is opt-in per view context —
+   only routes that read the session (e.g. home) set it true, so any page
+   that renders without it (public auth pages, error pages) safely falls
+   back to "Sign in". #}
+{% block govukServiceNavigation %}
+  {{ govukServiceNavigation({
+    serviceName: serviceName,
+    serviceUrl: serviceUrl,
+    navigation: [{
+      href: "/auth/logout" if isAuthenticated else "/auth/login",
+      text: "Sign out" if isAuthenticated else "Sign in"
+    }]
+  }) }}
+{% endblock %}

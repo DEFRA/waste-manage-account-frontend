@@ -1,4 +1,4 @@
 export default {
   extends: ['stylelint-config-gds/scss'],
-  ignoreFiles: ['**/public/**', '**/package/**', '**/vendor/**']
+  ignoreFiles: ['**/node_modules/**', '**/.public/**', '**/.server/**']
 }

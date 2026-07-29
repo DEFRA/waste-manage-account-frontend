@@ -1,4 +1,17 @@
+# Build output and dependencies
 .public
-package-lock.json
+.server
 node_modules
 coverage
+package-lock.json
+
+# Vendored agent tooling — keep verbatim to avoid churn against upstream skill definitions
+.agents
+.claude
+
+# Local-only loop artifacts (never reformat — PROGRESS.md is an append-only log)
+IMPLEMENTATION_PLAN.md
+PROGRESS.md
+PROMPT_plan.md
+PROMPT_build.md
+.ralph

@@ -1,0 +1,27 @@
+{% extends "layouts/page.njk" %}
+
+{% block pageTitle %}Hello World – {{ serviceName }} – GOV.UK{% endblock %}
+
+{% block content %}
+  <h1 class="govuk-heading-xl">Hello World</h1>
+
+  <h2 class="govuk-heading-l">Your account</h2>
+  <p class="govuk-body">Signed in as {{ user.name }} ({{ user.email }}).</p>
+
+  {% if currentOrganisation %}
+    <p class="govuk-body">Current organisation: {{ currentOrganisation.organisationName }}</p>
+  {% else %}
+    <p class="govuk-body">No current organisation is set.</p>
+  {% endif %}
+
+  <h3 class="govuk-heading-m">Your organisations</h3>
+  {% if relationships.length %}
+    <ul class="govuk-list govuk-list--bullet">
+      {% for relationship in relationships %}
+        <li>{{ relationship.organisationName }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="govuk-body">You are not linked to any organisations.</p>
+  {% endif %}
+{% endblock %}

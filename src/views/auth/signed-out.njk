@@ -1,0 +1,9 @@
+{% extends "layouts/page.njk" %}
+
+{% block pageTitle %}Signed out – {{ serviceName }} – GOV.UK{% endblock %}
+
+{% block content %}
+  <h1 class="govuk-heading-xl">You have signed out</h1>
+  <p class="govuk-body">You have been signed out of your account.</p>
+  <p class="govuk-body"><a class="govuk-link" href="/auth/login">Sign in again</a></p>
+{% endblock %}
