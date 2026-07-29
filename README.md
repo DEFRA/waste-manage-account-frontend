@@ -31,6 +31,7 @@ logging. All work follows the
 nvm use
 npm install
 npm run git:hooks
+git submodule update --init   # EE llm-toolkit rules/commands at prompts/library
 ```
 
 > **Note:** `npm run git:hooks` is a required manual step. The repository's

@@ -46,3 +46,16 @@ recipes — use them.
 
 `new-route` (page/route/view/tests scaffold) · `write-tests` (Vitest
 conventions and env-stubbing gotchas) · `commit` (conventional commits)
+
+## EE llm-toolkit (`prompts/library/` submodule)
+
+The [EqualExperts llm-toolkit](https://github.com/EqualExperts/llm-toolkit)
+is vendored as a git submodule. `/clarify` and `/breakdown` are wired into
+`.claude/commands/`. When designing or reviewing, consult the rules relevant
+to this stack: `clean-code`, `code-quality`, `testing-principles`,
+`solid-principles`, `git-rules`, `api-design`, `domain-driven-design`,
+`hexagonal-architecture`, `task-execution`, `long-running-tasks`,
+`platform/security`. Ignore the platform rules for other stacks
+(`typescript`, `angular-ts`, `dotnet`, `bicep`) — this repo is vanilla JS.
+Where a toolkit rule conflicts with the Defra standards or the hard rules
+above, **Defra standards win**.
