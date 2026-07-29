@@ -1,0 +1,3 @@
+[submodule "prompts/library"]
+	path = prompts/library
+	url = https://github.com/EqualExperts/llm-toolkit.git
