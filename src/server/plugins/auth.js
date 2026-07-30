@@ -35,6 +35,19 @@ async function profile(credentials, params) {
  * strategy. `location()` is the only place a caller-supplied value
  * (`?redirect=`) enters the flow, so it's passed through the open-redirect
  * guard before being stashed in yar for the sign-in-oidc callback to read.
+ *
+ * State/CSRF: bell generates its own random value per sign-in attempt
+ * (named `nonce` internally, sent as the OAuth2 `state` query param — see
+ * @hapi/bell's oauth.js), stores it in an encrypted, HttpOnly `bell-*`
+ * cookie, and rejects the callback if the returned `state` doesn't match.
+ * A separate OIDC `nonce` claim on the ID token isn't added on top of
+ * this: that claim exists to stop token substitution in the implicit/
+ * hybrid flows, where an ID token can arrive over the browser front
+ * channel. This app only uses the authorization code flow
+ * (`response_type: 'code'`, hardcoded by bell) — the ID token is obtained
+ * by our own server POSTing the code to DEFRA ID's token endpoint
+ * (`verify-token.js` then checks its signature, expiry, `aud`, and `iss`),
+ * so there's no front-channel token for a nonce to protect.
  */
 export function getBellOptions(oidcConfig) {
   const clientId = config.get('defraId.clientId')

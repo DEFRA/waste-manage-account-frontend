@@ -93,6 +93,11 @@ export const config = convict({
       env: 'LOG_FORMAT'
     },
     redact: {
+      // 'req.headers.cookie' covers every request cookie — the DEFRA ID
+      // session cookie, bell's temporary state cookie, and yar's pre-auth
+      // cookie — as one property, so no individual cookie name needs
+      // listing here. 'res.headers' likewise covers any Set-Cookie on the
+      // way out. See src/config/config.test.js#log.redact.
       doc: 'Log paths to redact',
       format: Array,
       default: isProduction

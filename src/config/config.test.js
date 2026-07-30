@@ -1,6 +1,35 @@
+import { vi } from 'vitest'
+
 import { config } from './config.js'
 
 describe('#config', () => {
+  describe('#log.redact', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs()
+    })
+
+    test('Should redact the cookie and authorization headers, and all response headers, in production', async () => {
+      vi.resetModules()
+      vi.stubEnv('NODE_ENV', 'production')
+
+      const { config: productionConfig } = await import('./config.js')
+
+      // 'req.headers.cookie' covers every cookie on the request, including
+      // the DEFRA ID session cookie (`defra-id-session`) and yar's pre-auth
+      // cookie — pino's `remove: true` redaction drops the whole property
+      // rather than replacing it, so no cookie value can leak into logs.
+      expect(productionConfig.get('log.redact')).toEqual([
+        'req.headers.authorization',
+        'req.headers.cookie',
+        'res.headers'
+      ])
+    })
+
+    test('Should not redact by default outside production', () => {
+      expect(config.get('log.redact')).toEqual([])
+    })
+  })
+
   describe('#defraId', () => {
     test('Should provide expected defaults', () => {
       expect(config.get('defraId.discoveryUrl')).toBe(
