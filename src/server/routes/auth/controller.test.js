@@ -1,11 +1,13 @@
 import { vi } from 'vitest'
+import { load } from 'cheerio'
 
 import { createServer } from '#/server/server.js'
 import {
   signInController,
   signInOidcController,
   signOutController,
-  signOutOidcController
+  signOutOidcController,
+  signedOutController
 } from './controller.js'
 import {
   mockOidcDiscovery,
@@ -268,10 +270,10 @@ describe('#signOutOidcController', () => {
     expect(validateState).toHaveBeenCalledWith(request, 'the-state')
     expect(cache.drop).toHaveBeenCalledWith('session-1')
     expect(cookieAuthClear).toHaveBeenCalledWith()
-    expect(h.redirect).toHaveBeenCalledWith('/')
+    expect(h.redirect).toHaveBeenCalledWith('/auth/signed-out')
   })
 
-  test('Should fail safe (clear cookie, redirect home, no throw) when the state is tampered or missing and no session remains', async () => {
+  test('Should fail safe (clear cookie, redirect to the signed-out page, no throw) when the state is tampered or missing and no session remains', async () => {
     const cache = createFakeCache()
     const cookieAuthClear = vi.fn()
     const h = createFakeToolkit()
@@ -291,7 +293,7 @@ describe('#signOutOidcController', () => {
 
     expect(cache.drop).not.toHaveBeenCalled()
     expect(cookieAuthClear).toHaveBeenCalledWith()
-    expect(h.redirect).toHaveBeenCalledWith('/')
+    expect(h.redirect).toHaveBeenCalledWith('/auth/signed-out')
   })
 
   test('Should still drop a lingering cached session even when the state check fails', async () => {
@@ -316,7 +318,24 @@ describe('#signOutOidcController', () => {
 
     expect(cache.drop).toHaveBeenCalledWith('session-1')
     expect(cookieAuthClear).toHaveBeenCalledWith()
-    expect(h.redirect).toHaveBeenCalledWith('/')
+    expect(h.redirect).toHaveBeenCalledWith('/auth/signed-out')
+  })
+})
+
+describe('#signedOutController', () => {
+  test('Should be publicly accessible', () => {
+    expect(signedOutController.options.auth).toEqual({ mode: 'try' })
+  })
+
+  test('Should render the signed-out confirmation view', () => {
+    const h = createFakeToolkit()
+
+    signedOutController.handler({}, h)
+
+    expect(h.view).toHaveBeenCalledWith('signed-out/index', {
+      pageTitle: 'You have signed out',
+      heading: 'You have signed out'
+    })
   })
 })
 
@@ -360,7 +379,7 @@ describe('#authRoutes', () => {
     expect(headers.location).toBe('https://defra-id.example/logout?state=abc')
   })
 
-  test('GET /auth/sign-out-oidc should redirect home', async () => {
+  test('GET /auth/sign-out-oidc should redirect to the signed-out confirmation page', async () => {
     validateState.mockReturnValueOnce(false)
 
     const { statusCode, headers } = await server.inject({
@@ -369,6 +388,17 @@ describe('#authRoutes', () => {
     })
 
     expect(statusCode).toBe(302)
-    expect(headers.location).toBe('/')
+    expect(headers.location).toBe('/auth/signed-out')
+  })
+
+  test('GET /auth/signed-out should render the confirmation page', async () => {
+    const { statusCode, result } = await server.inject({
+      method: 'GET',
+      url: '/auth/signed-out'
+    })
+
+    expect(statusCode).toBe(200)
+    const $ = load(result)
+    expect($('h1').text()).toContain('You have signed out')
   })
 })

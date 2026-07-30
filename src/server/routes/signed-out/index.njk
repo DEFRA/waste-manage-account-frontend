@@ -1,0 +1,16 @@
+{% extends 'layouts/page.njk' %}
+
+{% block content %}
+  {{ appHeading({
+    text: heading
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <p class="govuk-body">You have signed out of your waste management account.</p>
+      <p class="govuk-body">
+        <a class="govuk-link" href="/auth/sign-in">Sign in again</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

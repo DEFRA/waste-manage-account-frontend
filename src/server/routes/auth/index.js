@@ -2,7 +2,8 @@ import {
   signInController,
   signInOidcController,
   signOutController,
-  signOutOidcController
+  signOutOidcController,
+  signedOutController
 } from './controller.js'
 
 /**
@@ -35,6 +36,11 @@ export const authRoutes = {
           method: 'GET',
           path: '/auth/sign-out-oidc',
           ...signOutOidcController
+        },
+        {
+          method: 'GET',
+          path: '/auth/signed-out',
+          ...signedOutController
         }
       ])
     }

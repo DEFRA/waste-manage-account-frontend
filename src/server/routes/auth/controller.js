@@ -7,6 +7,7 @@ import { verifyToken } from '#/server/auth/verify-token.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 
 const defaultLandingPath = '/'
+const signedOutLandingPath = '/auth/signed-out'
 
 function buildAuthSession(credentials, claims) {
   return {
@@ -111,6 +112,22 @@ export const signOutOidcController = {
 
     request.cookieAuth.clear()
 
-    return h.redirect(defaultLandingPath)
+    return h.redirect(signedOutLandingPath)
+  }
+}
+
+/**
+ * Public confirmation page landed on after a completed sign-out, instead of
+ * bouncing straight back through `/` (which requires the `'user'` scope and
+ * would otherwise redirect an already-signed-out user straight to
+ * `/auth/sign-in`, giving no indication that sign-out actually succeeded).
+ */
+export const signedOutController = {
+  options: { auth: { mode: 'try' } },
+  handler(_request, h) {
+    return h.view('signed-out/index', {
+      pageTitle: 'You have signed out',
+      heading: 'You have signed out'
+    })
   }
 }
