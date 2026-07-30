@@ -22,4 +22,29 @@ describe('#contentSecurityPolicy', () => {
 
     expect(resp.headers['content-security-policy']).toBeDefined()
   })
+
+  test('Should not loosen form-action to the DEFRA ID host', async () => {
+    const resp = await server.inject({
+      method: 'GET',
+      url: '/about'
+    })
+
+    expect(resp.headers['content-security-policy']).toContain(
+      "form-action 'self'"
+    )
+  })
+
+  test('Should not block the sign-in redirect to the DEFRA ID host, despite the restrictive CSP', async () => {
+    const resp = await server.inject({
+      method: 'GET',
+      url: '/auth/sign-in'
+    })
+
+    expect(resp.statusCode).toBe(302)
+    const location = new URL(resp.headers.location)
+    expect(location.origin).toBe('https://defra-id.example')
+    expect(resp.headers['content-security-policy']).toContain(
+      "form-action 'self'"
+    )
+  })
 })
