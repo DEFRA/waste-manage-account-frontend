@@ -71,7 +71,14 @@ export async function createServer() {
     nunjucksConfig,
     Scooter,
     contentSecurityPolicy,
-    auth,
+    auth
+  ])
+
+  // Routes registered after this point default to requiring the session
+  // strategy; routes needing different behaviour opt out explicitly.
+  server.auth.default('session')
+
+  await server.register([
     crumb,
     router // Register all the controllers/routes defined in src/server/router.js
   ])

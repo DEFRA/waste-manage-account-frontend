@@ -335,6 +335,12 @@ describe('#auth plugin', () => {
       handler: () => 'ok'
     })
 
+    server.route({
+      method: 'GET',
+      path: '/__test-default-auth-route',
+      handler: () => 'ok'
+    })
+
     await server.initialize()
   })
 
@@ -348,10 +354,16 @@ describe('#auth plugin', () => {
     expect(server.registrations['@hapi/cookie']).toBeDefined()
   })
 
-  test('Should leave the default auth strategy unset', async () => {
-    const { statusCode } = await server.inject({ method: 'GET', url: '/' })
+  test('Should require session auth by default for a route with no explicit auth option', async () => {
+    const { statusCode, headers } = await server.inject({
+      method: 'GET',
+      url: '/__test-default-auth-route'
+    })
 
-    expect(statusCode).toBe(200)
+    expect(statusCode).toBe(302)
+    expect(headers.location).toBe(
+      `/auth/sign-in?redirect=${encodeURIComponent('/__test-default-auth-route')}`
+    )
   })
 
   test('Should redirect to the discovered authorization endpoint for the defra-id strategy', async () => {
