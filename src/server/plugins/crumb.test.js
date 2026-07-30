@@ -21,7 +21,7 @@ describe('#crumb', () => {
   test('Should not break an existing GET route inject', async () => {
     const resp = await server.inject({
       method: 'GET',
-      url: '/'
+      url: '/about'
     })
 
     expect(resp.statusCode).toBe(200)
@@ -30,7 +30,7 @@ describe('#crumb', () => {
   test('Should set a crumb cookie on a GET request', async () => {
     const resp = await server.inject({
       method: 'GET',
-      url: '/'
+      url: '/about'
     })
 
     const crumbCookie = resp.headers['set-cookie'].find((cookie) =>
@@ -43,7 +43,7 @@ describe('#crumb', () => {
   test('Should mark the crumb cookie consistently with the session cookie settings', async () => {
     const resp = await server.inject({
       method: 'GET',
-      url: '/'
+      url: '/about'
     })
 
     const crumbCookie = resp.headers['set-cookie'].find((cookie) =>

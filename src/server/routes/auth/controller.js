@@ -46,7 +46,8 @@ export const signInOidcController = {
       return h
         .view('unauthorised/index', {
           pageTitle: 'You could not be signed in',
-          heading: 'You could not be signed in'
+          heading: 'You could not be signed in',
+          message: 'You have not been signed in. Please try signing in again.'
         })
         .code(statusCodes.unauthorized)
     }

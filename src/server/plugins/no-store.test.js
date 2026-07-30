@@ -75,7 +75,7 @@ describe('#noStore integration', () => {
   test('Should mark an HTML page response no-store', async () => {
     const { headers, statusCode } = await server.inject({
       method: 'GET',
-      url: '/'
+      url: '/about'
     })
 
     expect(statusCode).toBe(200)
