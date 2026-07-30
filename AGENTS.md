@@ -4,15 +4,15 @@ GOV.UK frontend service for managing waste accounts, built on Defra's CDP fronte
 
 ## Detailed standards
 
-The rules below are the always-applicable summary. The full standards, tailored to this repo, live in `docs/standards/` — **read the relevant file before starting the matching kind of task**:
+The rules below are the always-applicable summary. The full standards, tailored to this repo, live in `doc/rules/` — **read the relevant file before starting the matching kind of task**:
 
-- [javascript-nodejs.md](docs/standards/javascript-nodejs.md) — writing any JS; adding dependencies; Hapi/ESM conventions
-- [common-coding.md](docs/standards/common-coding.md) — readability, naming, comments, simplicity; coverage rules
-- [git-workflow.md](docs/standards/git-workflow.md) — branching, commit messages, the full PR process
-- [security-logging.md](docs/standards/security-logging.md) — secure coding, GitHub Advanced Security, logging and PII rules
-- [containers.md](docs/standards/containers.md) — Dockerfile and image changes
-- [continuous-integration.md](docs/standards/continuous-integration.md) — workflow changes, action SHA-pinning, Sonar
-- [quality-assurance.md](docs/standards/quality-assurance.md) — acceptance criteria, accessibility (WCAG 2.2 AA), test approach
+- [javascript-nodejs.md](doc/rules/javascript-nodejs.md) — writing any JS; adding dependencies; Hapi/ESM conventions
+- [common-coding.md](doc/rules/common-coding.md) — readability, naming, comments, simplicity; coverage rules
+- [git-workflow.md](doc/rules/git-workflow.md) — branching, commit messages, the full PR process
+- [security-logging.md](doc/rules/security-logging.md) — secure coding, GitHub Advanced Security, logging and PII rules
+- [containers.md](doc/rules/containers.md) — Dockerfile and image changes
+- [continuous-integration.md](doc/rules/continuous-integration.md) — workflow changes, action SHA-pinning, Sonar
+- [quality-assurance.md](doc/rules/quality-assurance.md) — acceptance criteria, accessibility (WCAG 2.2 AA), test approach
 
 ## Language and frameworks
 
