@@ -8,6 +8,7 @@ import { auth } from './plugins/auth.js'
 import { crumb } from './plugins/crumb.js'
 import { pulse } from './plugins/pulse.js'
 import { catchAll } from './common/helpers/errors.js'
+import { noStoreHeader } from './plugins/no-store.js'
 import { nunjucksConfig } from '#/config/nunjucks/nunjucks.js'
 import { requestTracing } from './plugins/request-tracing.js'
 import { requestLogger } from './plugins/request-logger.js'
@@ -84,6 +85,7 @@ export async function createServer() {
   ])
 
   server.ext('onPreResponse', catchAll)
+  server.ext('onPreResponse', noStoreHeader)
 
   return server
 }
