@@ -70,6 +70,10 @@ describe('context and cache', () => {
               current: false,
               text: 'About',
               href: '/about'
+            },
+            {
+              text: 'Sign in',
+              href: '/auth/sign-in'
             }
           ],
           serviceName: 'waste-manage-account-frontend',
@@ -253,6 +257,10 @@ describe('context and cache', () => {
               current: false,
               text: 'About',
               href: '/about'
+            },
+            {
+              text: 'Sign in',
+              href: '/auth/sign-in'
             }
           ],
           serviceName: 'waste-manage-account-frontend',

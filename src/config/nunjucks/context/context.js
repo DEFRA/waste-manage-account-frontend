@@ -48,13 +48,15 @@ export async function context(request) {
     }
   }
 
+  const auth = await buildAuthContext(request)
+
   return {
     assetPath: `${assetPath}/assets`,
     serviceName: config.get('serviceName'),
     serviceUrl: '/',
     breadcrumbs: [],
-    navigation: buildNavigation(request),
-    auth: await buildAuthContext(request),
+    navigation: buildNavigation(request, auth),
+    auth,
     getAssetPath(asset) {
       if (!config.get('isProduction')) {
         return `${assetPath}/${asset}`
