@@ -31,11 +31,11 @@ Adapted for this repo from the DEFRA [JavaScript standards](https://github.com/D
 - Vet third-party packages before adding them — see the DEFRA [choosing packages guide](https://github.com/DEFRA/software-development-standards/blob/master/docs/guides/choosing_packages.md) and this repo's dependency rules in AGENTS.md.
 - The repo `.npmrc` must keep these settings:
 
-  | Setting | Purpose |
-  |---|---|
-  | `save-exact=true` | Saves exact versions; prevents version-range drift pulling in a later, potentially vulnerable release. |
-  | `ignore-scripts=true` | Blocks `preinstall`/`postinstall` lifecycle scripts — a common vector for arbitrary code execution from compromised packages. Pass `--ignore-scripts=false` per-command only when a package genuinely needs it. |
-  | `min-release-age=7` | Refuses packages published fewer than 7 days ago, giving time for package-takeover and typosquatting attacks to be detected. Bypass a single install with `--min-release-age=0` only after due diligence on the package and publisher. |
+  | Setting               | Purpose                                                                                                                                                                                                                                |
+  | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | `save-exact=true`     | Saves exact versions; prevents version-range drift pulling in a later, potentially vulnerable release.                                                                                                                                 |
+  | `ignore-scripts=true` | Blocks `preinstall`/`postinstall` lifecycle scripts — a common vector for arbitrary code execution from compromised packages. Pass `--ignore-scripts=false` per-command only when a package genuinely needs it.                        |
+  | `min-release-age=7`   | Refuses packages published fewer than 7 days ago, giving time for package-takeover and typosquatting attacks to be detected. Bypass a single install with `--min-release-age=0` only after due diligence on the package and publisher. |
 
 ### Server framework
 

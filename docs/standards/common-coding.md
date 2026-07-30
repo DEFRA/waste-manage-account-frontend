@@ -30,7 +30,7 @@ Adapted for this repo from the DEFRA [common coding standards](https://github.co
 ### Comments (when unavoidable)
 
 - Comments are code — keep them small and refactor them as the code changes.
-- Document *why* the thing is needed or why it's done this way, never the *how*.
+- Document _why_ the thing is needed or why it's done this way, never the _how_.
 - Comment in the right place: modules at the module declaration, functions at the function declaration.
 - Only write about the code — no names, dates, or opinions.
 - Never leave commented-out code; git history is the record.
@@ -39,10 +39,10 @@ Adapted for this repo from the DEFRA [common coding standards](https://github.co
 ## Simplicity
 
 - Don't code for reuse until there is a confirmed need for reuse.
-- Apply the [rule of three](https://en.wikipedia.org/wiki/Rule_of_three_(computer_programming)) before abstracting.
+- Apply the [rule of three](<https://en.wikipedia.org/wiki/Rule_of_three_(computer_programming)>) before abstracting.
 - Don't break the application apart until there is a confirmed need. The path to reuse is: module/namespace → shared package → (only with proven multi-service demand) separate application.
 
 ## Documentation and licensing
 
-- Document the *how* for the project: how to build, run, test and use it. The README follows the DEFRA [README standards](https://github.com/DEFRA/software-development-standards/blob/master/docs/standards/readme_standards.md).
+- Document the _how_ for the project: how to build, run, test and use it. The README follows the DEFRA [README standards](https://github.com/DEFRA/software-development-standards/blob/master/docs/standards/readme_standards.md).
 - The repo carries the Open Government Licence v3 (see `LICENCE`) and the README states the licence.

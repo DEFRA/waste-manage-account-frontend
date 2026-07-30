@@ -29,7 +29,7 @@ The rules below are the always-applicable summary. The full standards, tailored 
 - Linting is neostandard (`npm run lint`) with formatting delegated to Prettier (`npm run format`). Do not modify or extend the neostandard ruleset, and do not fight the formatter — run it.
 - Naming: intent-revealing names, no generic names (`p`, `temp`, `v`, `data2`), avoid unexplained domain acronyms. Prefer objects with named keys over positional arrays.
 - Keep functions small and named for what they do ("separate in order to name"). Aim for code readable without comments.
-- Comments, when needed, explain *why*, not *how*. Never leave commented-out code — git history is the record.
+- Comments, when needed, explain _why_, not _how_. Never leave commented-out code — git history is the record.
 - Simplicity first: no speculative abstraction or premature reuse. Apply the rule of three before abstracting.
 
 ## Dependencies
@@ -58,7 +58,7 @@ The rules below are the always-applicable summary. The full standards, tailored 
 ## Git workflow
 
 - All work happens on a branch — never commit directly to `main`. Main is always shippable.
-- Commit messages: imperative mood, capitalised subject ≤50 characters, no trailing period, blank line, then a body explaining *what and why* (link the Jira story where one exists).
+- Commit messages: imperative mood, capitalised subject ≤50 characters, no trailing period, blank line, then a body explaining _what and why_ (link the Jira story where one exists).
 - PRs are small and focused on one change, squash-merged, and the branch deleted after merge.
 - Releases follow semantic versioning; the version number lives in `package.json`.
 
