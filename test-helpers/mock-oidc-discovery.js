@@ -1,4 +1,5 @@
 export const oidcDiscoveryDocument = {
+  issuer: 'https://defra-id.example',
   authorization_endpoint: 'https://defra-id.example/authorize',
   token_endpoint: 'https://defra-id.example/token',
   jwks_uri: 'https://defra-id.example/.well-known/jwks.json',

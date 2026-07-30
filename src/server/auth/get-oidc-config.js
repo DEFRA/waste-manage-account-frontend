@@ -28,6 +28,7 @@ export async function getOidcConfig() {
   const document = await response.json()
 
   cachedEndpoints = {
+    issuer: document.issuer,
     authorizationEndpoint: document.authorization_endpoint,
     tokenEndpoint: document.token_endpoint,
     jwksUri: document.jwks_uri,

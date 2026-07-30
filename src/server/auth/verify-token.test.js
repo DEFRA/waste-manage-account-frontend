@@ -3,7 +3,10 @@ import crypto from 'node:crypto'
 import Jwt from '@hapi/jwt'
 import { vi } from 'vitest'
 
+import { config } from '#/config/config.js'
+
 const wellKnownDocument = {
+  issuer: 'https://defra-id.example',
   authorization_endpoint: 'https://defra-id.example/authorize',
   token_endpoint: 'https://defra-id.example/token',
   jwks_uri: 'https://defra-id.example/.well-known/jwks.json',
@@ -50,7 +53,11 @@ describe('#verifyToken', () => {
     const token = signToken(
       privateKey,
       kid,
-      { sub: 'user-1' },
+      {
+        sub: 'user-1',
+        aud: config.get('defraId.clientId'),
+        iss: wellKnownDocument.issuer
+      },
       { ttlSec: 3600 }
     )
 
@@ -59,6 +66,50 @@ describe('#verifyToken', () => {
 
     await expect(verifyToken(token)).resolves.toMatchObject({ sub: 'user-1' })
     expect(fetch).toHaveBeenCalledWith(wellKnownDocument.jwks_uri)
+  })
+
+  test('Should throw when the audience does not match this service', async () => {
+    const { publicKey, privateKey } = generateRsaKeyPair()
+    const kid = 'signing-key-1'
+    const token = signToken(
+      privateKey,
+      kid,
+      {
+        sub: 'user-1',
+        aud: 'a-different-service',
+        iss: wellKnownDocument.issuer
+      },
+      { ttlSec: 3600 }
+    )
+
+    mockDiscoveryAndJwks([toJwk(publicKey, kid)])
+    const { verifyToken } = await import('./verify-token.js')
+
+    await expect(verifyToken(token)).rejects.toThrow(
+      /Token audience is not allowed/
+    )
+  })
+
+  test('Should throw when the issuer does not match DEFRA ID', async () => {
+    const { publicKey, privateKey } = generateRsaKeyPair()
+    const kid = 'signing-key-1'
+    const token = signToken(
+      privateKey,
+      kid,
+      {
+        sub: 'user-1',
+        aud: config.get('defraId.clientId'),
+        iss: 'https://not-defra-id.example'
+      },
+      { ttlSec: 3600 }
+    )
+
+    mockDiscoveryAndJwks([toJwk(publicKey, kid)])
+    const { verifyToken } = await import('./verify-token.js')
+
+    await expect(verifyToken(token)).rejects.toThrow(
+      /Token payload iss value not allowed/
+    )
   })
 
   test('Should throw when no JWKS key matches the token kid', async () => {

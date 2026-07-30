@@ -3,6 +3,7 @@ import { vi } from 'vitest'
 import { config } from '#/config/config.js'
 
 const wellKnownDocument = {
+  issuer: 'https://defra-id.example',
   authorization_endpoint: 'https://defra-id.example/authorize',
   token_endpoint: 'https://defra-id.example/token',
   jwks_uri: 'https://defra-id.example/.well-known/jwks.json',
@@ -10,6 +11,7 @@ const wellKnownDocument = {
 }
 
 const expectedEndpoints = {
+  issuer: wellKnownDocument.issuer,
   authorizationEndpoint: wellKnownDocument.authorization_endpoint,
   tokenEndpoint: wellKnownDocument.token_endpoint,
   jwksUri: wellKnownDocument.jwks_uri,

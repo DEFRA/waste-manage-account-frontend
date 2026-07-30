@@ -8,14 +8,18 @@ import { getOidcConfig } from '#/server/auth/get-oidc-config.js'
  * signing key's `kid`, fetches the JWKS from OIDC discovery, and selects
  * the matching key — never `keys[0]`, since DEFRA ID rotates keys and the
  * wrong key would either fail closed or, worse, verify against a key that
- * doesn't belong to this token. Returns the decoded claims, or throws.
+ * doesn't belong to this token. Also binds the token to this service via
+ * `aud`/`iss` (OIDC core §3.1.3.7) — DEFRA ID's shared SSO policy means the
+ * same issuer signs tokens for other client services too, so signature
+ * validity alone isn't enough to prove a token was minted for us. Returns
+ * the decoded claims, or throws.
  */
 export async function verifyToken(token) {
   const artifacts = Jwt.token.decode(token)
   const { kid } = artifacts.decoded.header
 
-  const { jwksUri } = await getOidcConfig()
-  const response = await fetch(jwksUri)
+  const oidcConfig = await getOidcConfig()
+  const response = await fetch(oidcConfig.jwksUri)
 
   if (!response.ok) {
     throw new Error(
@@ -33,7 +37,9 @@ export async function verifyToken(token) {
   const publicKey = Jwt.crypto.rsaPublicKeyToPEM(matchingKey.n, matchingKey.e)
 
   Jwt.token.verify(artifacts, publicKey, {
-    timeSkewSec: config.get('defraId.clockToleranceSeconds')
+    timeSkewSec: config.get('defraId.clockToleranceSeconds'),
+    aud: config.get('defraId.clientId'),
+    iss: oidcConfig.issuer
   })
 
   return artifacts.decoded.payload
