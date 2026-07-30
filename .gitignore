@@ -12,3 +12,8 @@ tsconfig.tsbuildinfo
 .env
 
 _to_delete/
+IMPLEMENTATION_PLAN.md
+PROGRESS.md
+.ralph/
+PROMPT_plan.md
+PROMPT_build.md
