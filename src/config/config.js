@@ -171,22 +171,36 @@ export const config = convict({
   },
   defraId: {
     discoveryUrl: {
+      // Port 3200 and the /cdp-defra-id-stub base path match the stub's own
+      // published defaults (docker.io/defradigital/cdp-defra-id-stub) — see
+      // https://github.com/DEFRA/cdp-defra-id-stub#oidc-url. `localhost:3200`
+      // resolves both from a host-run `npm run dev` (compose publishes the
+      // stub's port) and from the `your-frontend` container itself, which
+      // compose.yml remaps via `extra_hosts: localhost:host-gateway` back to
+      // the same published port — so this one default works unmodified in
+      // both local dev modes.
       doc: 'DEFRA ID OIDC well-known discovery document URL',
       format: String,
       default:
-        'http://localhost:3939/cdp-defra-id-stub/.well-known/openid-configuration',
+        'http://localhost:3200/cdp-defra-id-stub/.well-known/openid-configuration',
       env: 'DEFRA_ID_DISCOVERY_URL'
     },
     clientId: {
+      // Matches cdp-defra-id-stub's own default `oidc.clientId` so the stub
+      // doesn't log an "Invalid client ID" warning on every sign-in.
       doc: 'DEFRA ID OAuth2 client id',
       format: String,
-      default: 'stub-client-id',
+      default: '63983fc2-cfff-45bb-8ec2-959e21062b9a',
       env: 'DEFRA_ID_CLIENT_ID'
     },
     clientSecret: {
+      // Must equal cdp-defra-id-stub's own default `oidc.clientSecret` —
+      // unlike the client id, the stub's token endpoint rejects a mismatched
+      // secret outright (401), so this exact value is required for local
+      // sign-in to complete, not just cosmetic.
       doc: 'DEFRA ID OAuth2 client secret. No production default — deployed environments must supply this via a CDP secret.',
       format: String,
-      default: 'stub-client-secret',
+      default: 'test_value',
       sensitive: true,
       env: 'DEFRA_ID_CLIENT_SECRET'
     },

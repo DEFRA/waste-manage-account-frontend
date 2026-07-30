@@ -4,9 +4,11 @@ describe('#config', () => {
   describe('#defraId', () => {
     test('Should provide expected defaults', () => {
       expect(config.get('defraId.discoveryUrl')).toBe(
-        'http://localhost:3939/cdp-defra-id-stub/.well-known/openid-configuration'
+        'http://localhost:3200/cdp-defra-id-stub/.well-known/openid-configuration'
       )
-      expect(config.get('defraId.clientId')).toBe('stub-client-id')
+      expect(config.get('defraId.clientId')).toBe(
+        '63983fc2-cfff-45bb-8ec2-959e21062b9a'
+      )
       expect(config.get('defraId.serviceId')).toBe('stub-service-id')
       expect(config.get('defraId.policy')).toBe('stub-policy')
       expect(config.get('defraId.callbackBaseUrl')).toBe(
