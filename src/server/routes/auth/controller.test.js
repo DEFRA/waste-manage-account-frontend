@@ -1,7 +1,12 @@
 import { vi } from 'vitest'
 
 import { createServer } from '#/server/server.js'
-import { signInController, signInOidcController } from './controller.js'
+import {
+  signInController,
+  signInOidcController,
+  signOutController,
+  signOutOidcController
+} from './controller.js'
 import {
   mockOidcDiscovery,
   oidcDiscoveryDocument
@@ -13,15 +18,24 @@ vi.mock('#/server/auth/verify-token.js', () => ({
 vi.mock('#/server/auth/get-permissions.js', () => ({
   getPermissions: vi.fn()
 }))
+vi.mock('#/server/auth/get-sign-out-url.js', () => ({
+  getSignOutUrl: vi.fn()
+}))
+vi.mock('#/server/auth/state.js', () => ({
+  validateState: vi.fn()
+}))
 
 const { verifyToken } = await import('#/server/auth/verify-token.js')
 const { getPermissions } = await import('#/server/auth/get-permissions.js')
+const { getSignOutUrl } = await import('#/server/auth/get-sign-out-url.js')
+const { validateState } = await import('#/server/auth/state.js')
 
 function createFakeCache() {
   const store = new Map()
   return {
     set: vi.fn(async (key, value) => store.set(key, value)),
-    get: vi.fn(async (key) => store.get(key) ?? null)
+    get: vi.fn(async (key) => store.get(key) ?? null),
+    drop: vi.fn(async (key) => store.delete(key))
   }
 }
 
@@ -153,6 +167,158 @@ describe('#signInOidcController', () => {
   })
 })
 
+describe('#signOutController', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  test('Should use the session strategy in try mode', () => {
+    expect(signOutController.options.auth).toEqual({
+      strategy: 'session',
+      mode: 'try'
+    })
+  })
+
+  test('Should drop the cached session, clear the cookie, and redirect to the end-session URL when authenticated', async () => {
+    const cache = createFakeCache()
+    await cache.set('session-1', { idToken: 'the-id-token' })
+    const cookieAuthClear = vi.fn()
+    const h = createFakeToolkit()
+
+    getSignOutUrl.mockResolvedValueOnce(
+      'https://defra-id.example/logout?state=abc'
+    )
+
+    const request = {
+      auth: {
+        isAuthenticated: true,
+        credentials: { sessionId: 'session-1' }
+      },
+      server: { app: { cache } },
+      cookieAuth: { clear: cookieAuthClear }
+    }
+
+    await signOutController.handler(request, h)
+
+    expect(cache.get).toHaveBeenCalledWith('session-1')
+    expect(cache.drop).toHaveBeenCalledWith('session-1')
+    expect(cookieAuthClear).toHaveBeenCalledWith()
+    expect(getSignOutUrl).toHaveBeenCalledWith(request, 'the-id-token')
+    expect(h.redirect).toHaveBeenCalledWith(
+      'https://defra-id.example/logout?state=abc'
+    )
+  })
+
+  test('Should clear the cookie and still redirect to the end-session URL when not authenticated', async () => {
+    const cache = createFakeCache()
+    const cookieAuthClear = vi.fn()
+    const h = createFakeToolkit()
+
+    getSignOutUrl.mockResolvedValueOnce('https://defra-id.example/logout')
+
+    const request = {
+      auth: { isAuthenticated: false },
+      server: { app: { cache } },
+      cookieAuth: { clear: cookieAuthClear }
+    }
+
+    await signOutController.handler(request, h)
+
+    expect(cache.get).not.toHaveBeenCalled()
+    expect(cache.drop).not.toHaveBeenCalled()
+    expect(cookieAuthClear).toHaveBeenCalledWith()
+    expect(getSignOutUrl).toHaveBeenCalledWith(request, undefined)
+    expect(h.redirect).toHaveBeenCalledWith('https://defra-id.example/logout')
+  })
+})
+
+describe('#signOutOidcController', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  test('Should use the session strategy in try mode', () => {
+    expect(signOutOidcController.options.auth).toEqual({
+      strategy: 'session',
+      mode: 'try'
+    })
+  })
+
+  test('Should drop the cached session, clear the cookie, and redirect home when the state is valid', async () => {
+    const cache = createFakeCache()
+    await cache.set('session-1', {})
+    const cookieAuthClear = vi.fn()
+    const h = createFakeToolkit()
+
+    validateState.mockReturnValueOnce(true)
+
+    const request = {
+      query: { state: 'the-state' },
+      auth: {
+        isAuthenticated: true,
+        credentials: { sessionId: 'session-1' }
+      },
+      server: { app: { cache } },
+      cookieAuth: { clear: cookieAuthClear }
+    }
+
+    await signOutOidcController.handler(request, h)
+
+    expect(validateState).toHaveBeenCalledWith(request, 'the-state')
+    expect(cache.drop).toHaveBeenCalledWith('session-1')
+    expect(cookieAuthClear).toHaveBeenCalledWith()
+    expect(h.redirect).toHaveBeenCalledWith('/')
+  })
+
+  test('Should fail safe (clear cookie, redirect home, no throw) when the state is tampered or missing and no session remains', async () => {
+    const cache = createFakeCache()
+    const cookieAuthClear = vi.fn()
+    const h = createFakeToolkit()
+
+    validateState.mockReturnValueOnce(false)
+
+    const request = {
+      query: {},
+      auth: { isAuthenticated: false },
+      server: { app: { cache } },
+      cookieAuth: { clear: cookieAuthClear }
+    }
+
+    await expect(
+      signOutOidcController.handler(request, h)
+    ).resolves.not.toThrow()
+
+    expect(cache.drop).not.toHaveBeenCalled()
+    expect(cookieAuthClear).toHaveBeenCalledWith()
+    expect(h.redirect).toHaveBeenCalledWith('/')
+  })
+
+  test('Should still drop a lingering cached session even when the state check fails', async () => {
+    const cache = createFakeCache()
+    await cache.set('session-1', {})
+    const cookieAuthClear = vi.fn()
+    const h = createFakeToolkit()
+
+    validateState.mockReturnValueOnce(false)
+
+    const request = {
+      query: { state: 'tampered' },
+      auth: {
+        isAuthenticated: true,
+        credentials: { sessionId: 'session-1' }
+      },
+      server: { app: { cache } },
+      cookieAuth: { clear: cookieAuthClear }
+    }
+
+    await signOutOidcController.handler(request, h)
+
+    expect(cache.drop).toHaveBeenCalledWith('session-1')
+    expect(cookieAuthClear).toHaveBeenCalledWith()
+    expect(h.redirect).toHaveBeenCalledWith('/')
+  })
+})
+
 describe('#authRoutes', () => {
   let server
 
@@ -177,5 +343,31 @@ describe('#authRoutes', () => {
     expect(location.origin + location.pathname).toBe(
       oidcDiscoveryDocument.authorization_endpoint
     )
+  })
+
+  test('GET /auth/sign-out should redirect to the end-session URL', async () => {
+    getSignOutUrl.mockResolvedValueOnce(
+      'https://defra-id.example/logout?state=abc'
+    )
+
+    const { statusCode, headers } = await server.inject({
+      method: 'GET',
+      url: '/auth/sign-out'
+    })
+
+    expect(statusCode).toBe(302)
+    expect(headers.location).toBe('https://defra-id.example/logout?state=abc')
+  })
+
+  test('GET /auth/sign-out-oidc should redirect home', async () => {
+    validateState.mockReturnValueOnce(false)
+
+    const { statusCode, headers } = await server.inject({
+      method: 'GET',
+      url: '/auth/sign-out-oidc'
+    })
+
+    expect(statusCode).toBe(302)
+    expect(headers.location).toBe('/')
   })
 })

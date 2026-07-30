@@ -1,4 +1,9 @@
-import { signInController, signInOidcController } from './controller.js'
+import {
+  signInController,
+  signInOidcController,
+  signOutController,
+  signOutOidcController
+} from './controller.js'
 
 /**
  * Sets up the DEFRA ID sign-in routes. Named `auth-routes` (not `auth`) to
@@ -20,6 +25,16 @@ export const authRoutes = {
           method: 'GET',
           path: '/auth/sign-in-oidc',
           ...signInOidcController
+        },
+        {
+          method: 'GET',
+          path: '/auth/sign-out',
+          ...signOutController
+        },
+        {
+          method: 'GET',
+          path: '/auth/sign-out-oidc',
+          ...signOutOidcController
         }
       ])
     }

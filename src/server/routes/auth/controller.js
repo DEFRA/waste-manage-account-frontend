@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto'
 
 import { getPermissions } from '#/server/auth/get-permissions.js'
+import { getSignOutUrl } from '#/server/auth/get-sign-out-url.js'
+import { validateState } from '#/server/auth/state.js'
 import { verifyToken } from '#/server/auth/verify-token.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 
@@ -60,5 +62,54 @@ export const signInOidcController = {
     request.cookieAuth.set({ sessionId })
 
     return h.redirect(request.yar.get('redirect', true) ?? defaultLandingPath)
+  }
+}
+
+/**
+ * `mode: 'try'` so this route works whether or not the session cookie is
+ * still valid (an idle-expired or already-refreshed-away session should
+ * still be able to trigger a sign-out). When a session is present its
+ * cache entry is dropped (to fetch the `idToken` DEFRA ID needs, since the
+ * cookie strategy's credentials only carry `sessionId`/`scope`/`profile`)
+ * before the cookie itself is cleared, so a request that fails partway
+ * through never leaves an orphaned cache entry outliving the cookie.
+ */
+export const signOutController = {
+  options: { auth: { strategy: 'session', mode: 'try' } },
+  async handler(request, h) {
+    let idToken
+
+    if (request.auth.isAuthenticated) {
+      const { sessionId } = request.auth.credentials
+      const authSession = await request.server.app.cache.get(sessionId)
+      idToken = authSession?.idToken
+      await request.server.app.cache.drop(sessionId)
+    }
+
+    request.cookieAuth.clear()
+
+    return h.redirect(await getSignOutUrl(request, idToken))
+  }
+}
+
+/**
+ * DEFRA ID's callback after it has ended its own session. `mode: 'try'`
+ * plus a fail-safe cache/cookie clear regardless of the `validateState`
+ * result: a tampered or missing state must never block a user from
+ * completing sign-out, it only means the state check couldn't confirm
+ * this redirect originated from our own `/auth/sign-out` request.
+ */
+export const signOutOidcController = {
+  options: { auth: { strategy: 'session', mode: 'try' } },
+  async handler(request, h) {
+    validateState(request, request.query.state)
+
+    if (request.auth.isAuthenticated) {
+      await request.server.app.cache.drop(request.auth.credentials.sessionId)
+    }
+
+    request.cookieAuth.clear()
+
+    return h.redirect(defaultLandingPath)
   }
 }
