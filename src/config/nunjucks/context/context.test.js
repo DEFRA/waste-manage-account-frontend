@@ -44,19 +44,20 @@ describe('context and cache', () => {
         contextImport = await import('./context.js')
       })
 
-      beforeEach(() => {
+      beforeEach(async () => {
         // Return JSON string
         mockReadFileSync.mockReturnValue(`{
         "application.js": "javascripts/application.js",
         "stylesheets/application.scss": "stylesheets/application.css"
       }`)
 
-        contextResult = contextImport.context(mockRequest)
+        contextResult = await contextImport.context(mockRequest)
       })
 
       test('Should provide expected context', () => {
         expect(contextResult).toEqual({
           assetPath: '/public/assets',
+          auth: { isAuthenticated: false },
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [
@@ -112,6 +113,99 @@ describe('context and cache', () => {
         )
       })
     })
+
+    describe('When the request is authenticated', () => {
+      let contextImport
+
+      beforeAll(async () => {
+        contextImport = await import('./context.js')
+      })
+
+      beforeEach(() => {
+        mockReadFileSync.mockReturnValue(`{
+        "application.js": "javascripts/application.js",
+        "stylesheets/application.scss": "stylesheets/application.css"
+      }`)
+      })
+
+      function authenticatedRequest(cacheGet) {
+        return {
+          path: '/',
+          auth: {
+            isAuthenticated: true,
+            credentials: { sessionId: 'session-id' }
+          },
+          server: { app: { cache: { get: cacheGet } } }
+        }
+      }
+
+      test('Should expose the signed-in flag and display name from the cached session', async () => {
+        const cacheGet = vi
+          .fn()
+          .mockResolvedValue({ profile: { displayName: 'Ada Lovelace' } })
+
+        const result = await contextImport.context(
+          authenticatedRequest(cacheGet)
+        )
+
+        expect(cacheGet).toHaveBeenCalledWith('session-id')
+        expect(result.auth).toEqual({
+          isAuthenticated: true,
+          displayName: 'Ada Lovelace'
+        })
+      })
+
+      test('Should default to an empty display name when the cached session has none', async () => {
+        const cacheGet = vi.fn().mockResolvedValue(undefined)
+
+        const result = await contextImport.context(
+          authenticatedRequest(cacheGet)
+        )
+
+        expect(result.auth).toEqual({
+          isAuthenticated: true,
+          displayName: ''
+        })
+      })
+
+      test('Should degrade to signed-out without throwing when the cache read fails', async () => {
+        const cacheGet = vi.fn().mockRejectedValue(new Error('cache down'))
+
+        const result = await contextImport.context(
+          authenticatedRequest(cacheGet)
+        )
+
+        expect(result.auth).toEqual({ isAuthenticated: false })
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          expect.stringContaining(
+            'Failed to load auth session for view context'
+          )
+        )
+      })
+
+      test('Should never expose token or claim fields from the cached session', async () => {
+        const cacheGet = vi.fn().mockResolvedValue({
+          accessToken: 'access-token',
+          refreshToken: 'refresh-token',
+          idToken: 'id-token',
+          scope: ['user'],
+          profile: {
+            crn: 'crn-1',
+            organisationId: 'org-1',
+            displayName: 'Ada Lovelace'
+          }
+        })
+
+        const result = await contextImport.context(
+          authenticatedRequest(cacheGet)
+        )
+
+        expect(result.auth).toEqual({
+          isAuthenticated: true,
+          displayName: 'Ada Lovelace'
+        })
+      })
+    })
   })
 
   describe('#context cache', () => {
@@ -125,14 +219,14 @@ describe('context and cache', () => {
         contextImport = await import('./context.js')
       })
 
-      beforeEach(() => {
+      beforeEach(async () => {
         // Return JSON string
         mockReadFileSync.mockReturnValue(`{
         "application.js": "javascripts/application.js",
         "stylesheets/application.scss": "stylesheets/application.css"
       }`)
 
-        contextResult = contextImport.context(mockRequest)
+        contextResult = await contextImport.context(mockRequest)
       })
 
       test('Should read file', () => {
@@ -146,6 +240,7 @@ describe('context and cache', () => {
       test('Should provide expected context', () => {
         expect(contextResult).toEqual({
           assetPath: '/public/assets',
+          auth: { isAuthenticated: false },
           breadcrumbs: [],
           getAssetPath: expect.any(Function),
           navigation: [
