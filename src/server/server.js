@@ -4,6 +4,7 @@ import Scooter from '@hapi/scooter'
 
 import { router } from './plugins/router.js'
 import { config } from '#/config/config.js'
+import { auth } from './plugins/auth.js'
 import { pulse } from './plugins/pulse.js'
 import { catchAll } from './common/helpers/errors.js'
 import { nunjucksConfig } from '#/config/nunjucks/nunjucks.js'
@@ -69,6 +70,7 @@ export async function createServer() {
     nunjucksConfig,
     Scooter,
     contentSecurityPolicy,
+    auth,
     router // Register all the controllers/routes defined in src/server/router.js
   ])
 
