@@ -6,6 +6,7 @@ import convictFormatWithValidator from 'convict-format-with-validator'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
+const thirtyMinutesMs = 1800000
 const fourHoursMs = 14400000
 const oneWeekMs = 604800000
 
@@ -114,6 +115,18 @@ export const config = convict({
     env: 'ENABLE_SECURE_CONTEXT'
   },
   session: {
+    idleTtl: {
+      doc: 'Session idle timeout in milliseconds — signs the user out after this period of inactivity',
+      format: Number,
+      default: thirtyMinutesMs,
+      env: 'SESSION_IDLE_TTL'
+    },
+    absoluteTtl: {
+      doc: 'Session absolute timeout in milliseconds — signs the user out this long after sign-in, regardless of activity',
+      format: Number,
+      default: fourHoursMs,
+      env: 'SESSION_ABSOLUTE_TTL'
+    },
     cache: {
       engine: {
         doc: 'backend cache is written to',
@@ -154,6 +167,77 @@ export const config = convict({
         default: isProduction,
         env: 'SESSION_COOKIE_SECURE'
       }
+    }
+  },
+  defraId: {
+    discoveryUrl: {
+      doc: 'DEFRA ID OIDC well-known discovery document URL',
+      format: String,
+      default:
+        'http://localhost:3939/cdp-defra-id-stub/.well-known/openid-configuration',
+      env: 'DEFRA_ID_DISCOVERY_URL'
+    },
+    clientId: {
+      doc: 'DEFRA ID OAuth2 client id',
+      format: String,
+      default: 'stub-client-id',
+      env: 'DEFRA_ID_CLIENT_ID'
+    },
+    clientSecret: {
+      doc: 'DEFRA ID OAuth2 client secret. No production default — deployed environments must supply this via a CDP secret.',
+      format: String,
+      default: 'stub-client-secret',
+      sensitive: true,
+      env: 'DEFRA_ID_CLIENT_SECRET'
+    },
+    serviceId: {
+      doc: 'DEFRA ID registered service id',
+      format: String,
+      default: 'stub-service-id',
+      env: 'DEFRA_ID_SERVICE_ID'
+    },
+    policy: {
+      // Stub placeholder only — the real value is confirmed with the DEFRA ID team during onboarding and also determines SSO grouping with other services.
+      doc: 'DEFRA ID policy (the `p` provider param) — shared policy value groups SSO across services',
+      format: String,
+      default: 'stub-policy',
+      env: 'DEFRA_ID_POLICY'
+    },
+    callbackBaseUrl: {
+      doc: 'Base URL this service is reachable on, used to build DEFRA ID sign-in/sign-out callback URLs',
+      format: String,
+      default: 'http://localhost:3000',
+      env: 'DEFRA_ID_CALLBACK_BASE_URL'
+    },
+    refreshEnabled: {
+      doc: 'Whether to transparently refresh expired tokens using the refresh token',
+      format: Boolean,
+      default: true,
+      env: 'DEFRA_ID_REFRESH_ENABLED'
+    },
+    clockToleranceSeconds: {
+      doc: 'Clock skew tolerance, in seconds, applied when checking token expiry',
+      format: Number,
+      default: 60,
+      env: 'DEFRA_ID_CLOCK_TOLERANCE_SECONDS'
+    },
+    discoveryCacheTtlSeconds: {
+      doc: 'How long, in seconds, to cache the fetched OIDC discovery document in memory',
+      format: Number,
+      default: 3600,
+      env: 'DEFRA_ID_DISCOVERY_CACHE_TTL_SECONDS'
+    },
+    pkceEnabled: {
+      doc: 'Whether to use PKCE (S256) for the OAuth2 authorisation code flow. Stays false until stub/tenant PKCE support is confirmed.',
+      format: Boolean,
+      default: false,
+      env: 'DEFRA_ID_PKCE_ENABLED'
+    },
+    stubEnabled: {
+      doc: 'Whether the app is running against the local cdp-defra-id-stub rather than a real DEFRA ID tenant',
+      format: Boolean,
+      default: !isProduction,
+      env: 'DEFRA_ID_STUB_ENABLED'
     }
   },
   redis: {
