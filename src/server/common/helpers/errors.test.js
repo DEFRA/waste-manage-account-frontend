@@ -3,11 +3,13 @@ import { vi } from 'vitest'
 import { catchAll } from './errors.js'
 import { createServer } from '../../server.js'
 import { statusCodes } from '../constants/status-codes.js'
+import { mockOidcDiscovery } from '#/test-helpers/mock-oidc-discovery.js'
 
 describe('#errors', () => {
   let server
 
   beforeAll(async () => {
+    mockOidcDiscovery()
     server = await createServer()
     await server.initialize()
   })

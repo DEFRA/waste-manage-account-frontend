@@ -1,9 +1,11 @@
 import { createServer } from '#/server/server.js'
+import { mockOidcDiscovery } from '#/test-helpers/mock-oidc-discovery.js'
 
 describe('#contentSecurityPolicy', () => {
   let server
 
   beforeAll(async () => {
+    mockOidcDiscovery()
     server = await createServer()
     await server.initialize()
   })

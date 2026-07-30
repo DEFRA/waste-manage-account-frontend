@@ -1,10 +1,12 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { mockOidcDiscovery } from '#/test-helpers/mock-oidc-discovery.js'
 
 describe('#homeController', () => {
   let server
 
   beforeAll(async () => {
+    mockOidcDiscovery()
     server = await createServer()
     await server.initialize()
   })

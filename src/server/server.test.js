@@ -4,6 +4,7 @@ import { Redis } from 'ioredis'
 
 import { createServer } from './server.js'
 import { config } from '#/config/config.js'
+import { mockOidcDiscovery } from '#/test-helpers/mock-oidc-discovery.js'
 
 vi.mock('ioredis', () => ({
   ...vi.importActual('ioredis'),
@@ -17,6 +18,7 @@ describe('#createServer auth session cache', () => {
     let server
 
     beforeAll(async () => {
+      mockOidcDiscovery()
       server = await createServer()
       await server.initialize()
     })

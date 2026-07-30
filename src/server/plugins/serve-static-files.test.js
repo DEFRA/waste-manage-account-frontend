@@ -1,11 +1,13 @@
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
+import { mockOidcDiscovery } from '#/test-helpers/mock-oidc-discovery.js'
 
 describe('#serveStaticFiles', () => {
   let server
 
   describe('When secure context is disabled', () => {
     beforeEach(async () => {
+      mockOidcDiscovery()
       server = await createServer()
       await server.initialize()
     })
