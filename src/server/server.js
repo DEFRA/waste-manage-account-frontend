@@ -52,6 +52,13 @@ export async function createServer() {
       strictHeader: false
     }
   })
+
+  server.app.cache = server.cache({
+    cache: config.get('session.cache.name'),
+    segment: 'defra-id-session',
+    expiresIn: config.get('session.idleTtl')
+  })
+
   await server.register([
     requestLogger,
     requestTracing,
