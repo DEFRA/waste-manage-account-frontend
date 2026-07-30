@@ -1,9 +1,11 @@
 import Bell from '@hapi/bell'
+import Cookie from '@hapi/cookie'
 import Jwt from '@hapi/jwt'
 
 import { config } from '#/config/config.js'
 import { getOidcConfig } from '#/server/auth/get-oidc-config.js'
 import { getSafeRedirect } from '#/server/auth/get-safe-redirect.js'
+import { refreshTokens } from '#/server/auth/refresh-tokens.js'
 
 function buildDisplayName(claims) {
   const name = [claims.firstName, claims.lastName].filter(Boolean).join(' ')
@@ -67,14 +69,100 @@ export function getBellOptions(oidcConfig) {
   }
 }
 
+function toCredentials(sessionId, session) {
+  return {
+    sessionId,
+    scope: session.scope,
+    profile: session.profile
+  }
+}
+
+/**
+ * Loads the auth session from `server.app.cache` for the cookie's
+ * `sessionId`. Enforces the absolute session TTL (via `createdAt`) ahead of
+ * token expiry so a transparently-refreshed token can't keep a session
+ * alive forever. An expired token is refreshed (`refresh-tokens.js`) when
+ * `defraId.refreshEnabled`, otherwise the session is dropped and invalidated.
+ */
+export async function validateSession(request, session) {
+  const { cache } = request.server.app
+  const authSession = await cache.get(session.sessionId)
+
+  if (!authSession) {
+    return { isValid: false }
+  }
+
+  if (Date.now() - authSession.createdAt > config.get('session.absoluteTtl')) {
+    await cache.drop(session.sessionId)
+    return { isValid: false }
+  }
+
+  const toleranceMs = config.get('defraId.clockToleranceSeconds') * 1000
+  if (Date.now() <= authSession.expiresAt + toleranceMs) {
+    return {
+      isValid: true,
+      credentials: toCredentials(session.sessionId, authSession)
+    }
+  }
+
+  if (!config.get('defraId.refreshEnabled')) {
+    await cache.drop(session.sessionId)
+    return { isValid: false }
+  }
+
+  try {
+    const tokenSet = await refreshTokens(authSession.refreshToken)
+    const refreshedSession = {
+      ...authSession,
+      accessToken: tokenSet.accessToken,
+      refreshToken: tokenSet.refreshToken,
+      idToken: tokenSet.idToken,
+      expiresAt: Date.now() + tokenSet.expiresIn * 1000
+    }
+
+    await cache.set(session.sessionId, refreshedSession)
+
+    return {
+      isValid: true,
+      credentials: toCredentials(session.sessionId, refreshedSession)
+    }
+  } catch {
+    await cache.drop(session.sessionId)
+    return { isValid: false }
+  }
+}
+
+/**
+ * Builds the @hapi/cookie `session` strategy options. The cookie itself
+ * holds only `{ sessionId }` — the real session lives server-side in
+ * `server.app.cache` — and `appendNext: 'redirect'` preserves the original
+ * path+search so `location()` (in getBellOptions) can restore it after
+ * sign-in.
+ */
+export function getCookieOptions() {
+  return {
+    cookie: {
+      name: 'defra-id-session',
+      password: config.get('session.cookie.password'),
+      isSecure: config.get('session.cookie.secure'),
+      isSameSite: 'Lax',
+      ttl: config.get('session.cookie.ttl')
+    },
+    redirectTo: '/auth/sign-in',
+    appendNext: 'redirect',
+    validate: validateSession
+  }
+}
+
 export const auth = {
   plugin: {
     name: 'auth',
     async register(server) {
-      await server.register(Bell)
+      await server.register([Bell, Cookie])
 
       const oidcConfig = await getOidcConfig()
       server.auth.strategy('defra-id', 'bell', getBellOptions(oidcConfig))
+      server.auth.strategy('session', 'cookie', getCookieOptions())
     }
   }
 }
