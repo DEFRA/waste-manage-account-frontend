@@ -6,10 +6,10 @@ VS Code / Cursor development environment for this service. Opens the app in a No
 
 Defined in [`docker-compose.yml`](./docker-compose.yml):
 
-| Service | Image | Role |
-| --- | --- | --- |
-| `app` | `mcr.microsoft.com/devcontainers/javascript-node:24-bookworm` | Workspace and runtime |
-| `redis` | `redis:7.2.3-alpine3.18` | Session / cache store (hostname `redis`) |
+| Service | Image                                                         | Role                                     |
+| ------- | ------------------------------------------------------------- | ---------------------------------------- |
+| `app`   | `mcr.microsoft.com/devcontainers/javascript-node:24-bookworm` | Workspace and runtime                    |
+| `redis` | `redis:7.2.3-alpine3.18`                                      | Session / cache store (hostname `redis`) |
 
 Both join the `cdp-tenant` bridge network so the app can reach Redis as `redis:6379`.
 
@@ -23,25 +23,25 @@ Both join the `cdp-tenant` bridge network so the app can reach Redis as `redis:6
 
 Forwarded from [`devcontainer.json`](./devcontainer.json):
 
-| Port | Purpose |
-| --- | --- |
-| `3000` | Application |
+| Port   | Purpose          |
+| ------ | ---------------- |
+| `3000` | Application      |
 | `9229` | Node.js debugger |
-| `6379` | Redis |
+| `6379` | Redis            |
 
 ## Environment
 
 `remoteEnv` sets local-friendly defaults:
 
-| Variable | Value | Why |
-| --- | --- | --- |
-| `NODE_ENV` | `development` | Dev server / Vite middleware |
-| `REDIS_HOST` | `redis` | Compose service name |
-| `REDIS_TLS` | `false` | No TLS inside the compose network |
-| `USE_SINGLE_INSTANCE_CACHE` | `true` | Single Redis instance (not a cluster) |
-| `SESSION_COOKIE_SECURE` | `false` | Allow HTTP on localhost |
-| `LOG_FORMAT` | `pino-pretty` | Readable logs |
-| `AWS_EMF_ENVIRONMENT` | `Local` | Local metrics behaviour |
+| Variable                    | Value         | Why                                   |
+| --------------------------- | ------------- | ------------------------------------- |
+| `NODE_ENV`                  | `development` | Dev server / Vite middleware          |
+| `REDIS_HOST`                | `redis`       | Compose service name                  |
+| `REDIS_TLS`                 | `false`       | No TLS inside the compose network     |
+| `USE_SINGLE_INSTANCE_CACHE` | `true`        | Single Redis instance (not a cluster) |
+| `SESSION_COOKIE_SECURE`     | `false`       | Allow HTTP on localhost               |
+| `LOG_FORMAT`                | `pino-pretty` | Readable logs                         |
+| `AWS_EMF_ENVIRONMENT`       | `Local`       | Local metrics behaviour               |
 
 Session cache still defaults to **in-memory** outside production (`SESSION_CACHE_ENGINE=memory`). Redis is available when you need it; set `SESSION_CACHE_ENGINE=redis` to use it.
 
