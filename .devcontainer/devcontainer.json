@@ -1,0 +1,56 @@
+{
+  "name": "waste-manage-account-frontend",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/waste-manage-account-frontend",
+
+  "forwardPorts": [3000, 9229, 6379],
+  "portsAttributes": {
+    "3000": {
+      "label": "Application",
+      "onAutoForward": "notify"
+    },
+    "9229": {
+      "label": "Node.js debugger",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "silent"
+    }
+  },
+
+  "postCreateCommand": "npm ci",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "stylelint.vscode-stylelint",
+        "editorconfig.editorconfig"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "eslint.validate": ["javascript"],
+        "stylelint.validate": ["scss"]
+      }
+    }
+  },
+
+  "remoteEnv": {
+    "NODE_ENV": "development",
+    "AWS_EMF_ENVIRONMENT": "Local",
+    "REDIS_HOST": "redis",
+    "REDIS_TLS": "false",
+    "USE_SINGLE_INSTANCE_CACHE": "true",
+    "SESSION_COOKIE_SECURE": "false",
+    "LOG_FORMAT": "pino-pretty"
+  },
+
+  "remoteUser": "node"
+}
