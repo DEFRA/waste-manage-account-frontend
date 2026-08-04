@@ -19,7 +19,7 @@ function toScopeValue(entry) {
 /**
  * Maps a DEFRA ID token's `roles`/`relationships` claims to a hapi `scope`
  * array, always including a baseline `'user'` scope. This is a single,
- * replaceable seam — there is no backend permissions API or Siti Agri
+ * replaceable seam — there is no backend permissions lookup
  * lookup — so the mapping stays tolerant of absent or malformed claims
  * rather than throwing, and the exact claim shape can be corrected once
  * confirmed against a stub token. Never log the input claims (PII rule).
