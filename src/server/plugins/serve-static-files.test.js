@@ -24,5 +24,14 @@ describe('#serveStaticFiles', () => {
 
       expect(statusCode).toBe(statusCodes.noContent)
     })
+
+    test('Should serve a stylesheet to a signed-out request without redirecting to sign-in', async () => {
+      const { statusCode } = await server.inject({
+        method: 'GET',
+        url: '/public/stylesheets/application.css'
+      })
+
+      expect(statusCode).toBe(statusCodes.ok)
+    })
   })
 })

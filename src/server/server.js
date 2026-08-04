@@ -3,6 +3,7 @@ import hapi from '@hapi/hapi'
 import Scooter from '@hapi/scooter'
 
 import { router } from './plugins/router.js'
+import { staticAssets } from './plugins/static-assets.js'
 import { config } from '#/config/config.js'
 import { auth } from './plugins/auth.js'
 import { crumb } from './plugins/crumb.js'
@@ -81,6 +82,7 @@ export async function createServer() {
 
   await server.register([
     crumb,
+    staticAssets,
     router // Register all the controllers/routes defined in src/server/router.js
   ])
 
