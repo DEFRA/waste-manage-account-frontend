@@ -178,11 +178,18 @@ with DEFRA ID for each deployed environment.
 
 #### Using real DEFRA ID instead
 
-Override the `DEFRA_ID_*` environment variables (see `src/config/config.js` for the full list) with
-your tenant's discovery URL and credentials. `defraId.stubEnabled` defaults to `!isProduction` purely
-as an informational flag — it isn't read anywhere to change behaviour, so switching providers is just
-a matter of overriding `DEFRA_ID_DISCOVERY_URL`, `DEFRA_ID_CLIENT_ID`, `DEFRA_ID_CLIENT_SECRET`,
-`DEFRA_ID_SERVICE_ID`, and `DEFRA_ID_POLICY`.
+The code has no notion of "stub mode" — which provider the app talks to is decided entirely by
+per-environment configuration. Override the `DEFRA_ID_*` environment variables (see
+`src/config/config.js` for the full list) with your tenant's discovery URL and credentials:
+`DEFRA_ID_DISCOVERY_URL`, `DEFRA_ID_CLIENT_ID`, `DEFRA_ID_CLIENT_SECRET`, `DEFRA_ID_SERVICE_ID`,
+plus the two values that stay unset while an environment runs the stub:
+
+- `DEFRA_ID_POLICY` — the Azure B2C policy from DEFRA ID onboarding, sent as the `p` authorize
+  param only when set. The stub rejects unknown authorize params, so stub environments leave this
+  empty.
+- `DEFRA_ID_SCOPES` — comma separated, defaults to `openid,offline_access`. A real tenant needs the
+  client id appended (e.g. `openid,offline_access,<client id>`) for an access token to be issued;
+  the stub rejects the bare client id scope, so stub environments keep the default.
 
 ### Production
 

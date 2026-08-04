@@ -216,11 +216,26 @@ export const config = convict({
       env: 'DEFRA_ID_SERVICE_ID'
     },
     policy: {
-      // Stub placeholder only — the real value is confirmed with the DEFRA ID team during onboarding and also determines SSO grouping with other services.
-      doc: 'DEFRA ID policy (the `p` provider param) — shared policy value groups SSO across services',
+      // Left empty for environments running cdp-defra-id-stub, which rejects
+      // the B2C-only `p` param. The real value is confirmed with the DEFRA ID
+      // team during onboarding and also determines SSO grouping with other
+      // services — set it only where a real tenant is in use.
+      doc: 'DEFRA ID (Azure B2C) policy, sent as the `p` provider param when set — shared policy value groups SSO across services',
       format: String,
-      default: 'stub-policy',
+      default: '',
       env: 'DEFRA_ID_POLICY'
+    },
+    scopes: {
+      // A real DEFRA ID (Azure B2C) tenant additionally needs the client id
+      // in this list for an access token to be issued (e.g.
+      // "openid,offline_access,<client id>"); cdp-defra-id-stub rejects the
+      // bare client id, so environments running the stub keep the default.
+      // The app's own authorisation is unaffected either way — session scope
+      // is derived from token claims in get-permissions.js.
+      doc: 'OAuth2 scopes requested at sign-in, comma separated',
+      format: Array,
+      default: ['openid', 'offline_access'],
+      env: 'DEFRA_ID_SCOPES'
     },
     callbackBaseUrl: {
       doc: 'Base URL this service is reachable on, used to build DEFRA ID sign-in/sign-out callback URLs',
@@ -251,12 +266,6 @@ export const config = convict({
       format: Boolean,
       default: false,
       env: 'DEFRA_ID_PKCE_ENABLED'
-    },
-    stubEnabled: {
-      doc: 'Whether the app is running against the local cdp-defra-id-stub rather than a real DEFRA ID tenant',
-      format: Boolean,
-      default: !isProduction,
-      env: 'DEFRA_ID_STUB_ENABLED'
     }
   },
   redis: {

@@ -49,6 +49,8 @@ function createFakeRequest(cache) {
 describe('#getBellOptions', () => {
   afterEach(() => {
     config.set('defraId.pkceEnabled', false)
+    config.set('defraId.policy', '')
+    config.set('defraId.scopes', ['openid', 'offline_access'])
   })
 
   const oidcConfig = {
@@ -63,14 +65,26 @@ describe('#getBellOptions', () => {
 
     expect(options.provider.auth).toBe(oidcConfig.authorizationEndpoint)
     expect(options.provider.token).toBe(oidcConfig.tokenEndpoint)
+    expect(options.provider.scope).toEqual(['openid', 'offline_access'])
+    expect(options.provider.useParamsAuth).toBe(true)
+    expect(options.clientId).toBe(config.get('defraId.clientId'))
+    expect(options.isSecure).toBe(config.get('session.cookie.secure'))
+  })
+
+  test('Should request the scopes configured for a real tenant', () => {
+    config.set('defraId.scopes', [
+      'openid',
+      'offline_access',
+      config.get('defraId.clientId')
+    ])
+
+    const options = getBellOptions(oidcConfig)
+
     expect(options.provider.scope).toEqual([
       'openid',
       'offline_access',
       config.get('defraId.clientId')
     ])
-    expect(options.provider.useParamsAuth).toBe(true)
-    expect(options.clientId).toBe(config.get('defraId.clientId'))
-    expect(options.isSecure).toBe(config.get('session.cookie.secure'))
   })
 
   test('Should omit pkce when defraId.pkceEnabled is false', () => {
@@ -112,13 +126,22 @@ describe('#getBellOptions', () => {
     expect(yar.get('redirect')).toBe('/')
   })
 
-  test('Should build providerParams from defraId config', () => {
+  test('Should send only serviceId when no policy is configured', () => {
+    const options = getBellOptions(oidcConfig)
+
+    expect(options.providerParams()).toEqual({
+      serviceId: config.get('defraId.serviceId')
+    })
+  })
+
+  test('Should add the `p` param when a policy is configured', () => {
+    config.set('defraId.policy', 'b2c_1a_signupsignin')
+
     const options = getBellOptions(oidcConfig)
 
     expect(options.providerParams()).toEqual({
       serviceId: config.get('defraId.serviceId'),
-      p: config.get('defraId.policy'),
-      response_mode: 'query'
+      p: 'b2c_1a_signupsignin'
     })
   })
 
@@ -165,6 +188,7 @@ describe('#getCookieOptions', () => {
     expect(options.cookie.isSecure).toBe(config.get('session.cookie.secure'))
     expect(options.cookie.isSameSite).toBe('Lax')
     expect(options.cookie.ttl).toBe(config.get('session.cookie.ttl'))
+    expect(options.cookie.path).toBe('/')
     expect(options.redirectTo).toBe('/auth/sign-in')
     expect(options.appendNext).toBe('redirect')
     expect(options.validate).toBe(validateSession)
@@ -383,7 +407,11 @@ describe('#auth plugin', () => {
     expect(location.searchParams.get('serviceId')).toBe(
       config.get('defraId.serviceId')
     )
-    expect(location.searchParams.get('response_mode')).toBe('query')
+    // No policy is configured by default, matching environments that run
+    // cdp-defra-id-stub — the B2C-only params must be absent because the
+    // stub rejects them with a 400.
+    expect(location.searchParams.get('response_mode')).toBeNull()
+    expect(location.searchParams.get('p')).toBeNull()
     expect(location.searchParams.get('state')).toBeTruthy()
   })
 
