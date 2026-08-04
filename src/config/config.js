@@ -162,7 +162,7 @@ export const config = convict({
       password: {
         doc: 'session cookie password',
         format: String,
-        default: 'the-password-must-be-at-least-32-characters-long',
+        default: '',
         env: 'SESSION_COOKIE_PASSWORD',
         sensitive: true
       },
@@ -205,7 +205,7 @@ export const config = convict({
       // sign-in to complete, not just cosmetic.
       doc: 'DEFRA ID OAuth2 client secret. No production default — deployed environments must supply this via a CDP secret.',
       format: String,
-      default: 'test_value',
+      default: '',
       sensitive: true,
       env: 'DEFRA_ID_CLIENT_SECRET'
     },

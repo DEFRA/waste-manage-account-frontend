@@ -25,6 +25,7 @@ Core delivery platform Node.js Frontend Template.
   - [Docker Compose](#docker-compose)
   - [Dependabot](#dependabot)
   - [SonarCloud](#sonarcloud)
+- [Deployment](#deployment)
 - [Licence](#licence)
   - [About the licence](#about-the-licence)
 
@@ -279,6 +280,25 @@ the [.github/example.dependabot.yml](.github/example.dependabot.yml) to `.github
 ### SonarCloud
 
 Instructions for setting up SonarCloud can be found in [sonar-project.properties](./sonar-project.properties).
+
+## Deployment
+
+The following environment variables hold secrets and must be configured for each environment as part
+of the release:
+
+```dotenv
+SESSION_COOKIE_PASSWORD=
+DEFRA_ID_CLIENT_SECRET=
+```
+
+- `SESSION_COOKIE_PASSWORD` — password used to encrypt the session cookie; must be at least 32
+  characters and unique per environment.
+- `DEFRA_ID_CLIENT_SECRET` — client secret for the environment's DEFRA ID tenant (see
+  [DEFRA ID authentication](#defra-id-authentication)).
+
+Set them as environment secrets — never commit their values to the repository. All other
+configuration has sensible defaults in [src/config/config.js](./src/config/config.js) and can be
+overridden per environment with the corresponding environment variables.
 
 ## Licence
 
