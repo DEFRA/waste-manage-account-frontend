@@ -2,6 +2,7 @@ import { vi } from 'vitest'
 
 import hapi from '@hapi/hapi'
 import { statusCodes } from '../constants/status-codes.js'
+import { mockOidcDiscovery } from '#/test-helpers/mock-oidc-discovery.js'
 
 describe('#startServer', () => {
   let createServerSpy
@@ -31,6 +32,7 @@ describe('#startServer', () => {
     })
 
     test('Should start up server as expected', async () => {
+      mockOidcDiscovery()
       server = await startServerImport.startServer()
 
       expect(createServerSpy).toHaveBeenCalled()

@@ -14,7 +14,32 @@ const manifestPath = path.join(
 
 let viteManifest
 
-export function context(request) {
+/**
+ * Reads the auth session from server.app.cache to expose only a display
+ * name and signed-in flag to views - never token or claim contents. A cache
+ * failure degrades to signed-out rather than failing the whole page render.
+ */
+async function buildAuthContext(request) {
+  if (!request.auth?.isAuthenticated) {
+    return { isAuthenticated: false }
+  }
+
+  try {
+    const session = await request.server.app.cache.get(
+      request.auth.credentials.sessionId
+    )
+
+    return {
+      isAuthenticated: true,
+      displayName: session?.profile?.displayName ?? ''
+    }
+  } catch (error) {
+    logger.error(`Failed to load auth session for view context: ${error}`)
+    return { isAuthenticated: false }
+  }
+}
+
+export async function context(request) {
   if (config.get('isProduction') && !viteManifest) {
     try {
       viteManifest = JSON.parse(readFileSync(manifestPath, 'utf-8'))
@@ -23,12 +48,15 @@ export function context(request) {
     }
   }
 
+  const auth = await buildAuthContext(request)
+
   return {
     assetPath: `${assetPath}/assets`,
     serviceName: config.get('serviceName'),
     serviceUrl: '/',
     breadcrumbs: [],
-    navigation: buildNavigation(request),
+    navigation: buildNavigation(request, auth),
+    auth,
     getAssetPath(asset) {
       if (!config.get('isProduction')) {
         return `${assetPath}/${asset}`

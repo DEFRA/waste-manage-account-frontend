@@ -36,6 +36,28 @@ services:
       retries: 3
       start_period: 30s
 
+  # Stubs DEFRA ID (OIDC) for local sign-in — see README for test-user setup.
+  # https://github.com/DEFRA/cdp-defra-id-stub
+  cdp-defra-id-stub:
+    image: defradigital/cdp-defra-id-stub:latest
+    ports:
+      - '3200:3200'
+    links:
+      - 'redis:redis'
+    depends_on:
+      redis:
+        condition: service_started
+    environment:
+      PORT: 3200
+      NODE_ENV: development
+      REDIS_HOST: redis
+      USE_SINGLE_INSTANCE_CACHE: true
+      # In-memory registrations store — no DynamoDB/Floci wiring needed for
+      # the stub locally; test users don't need to survive a restart.
+      REGISTRATIONS_STORE_ENGINE: memory
+    networks:
+      - cdp-tenant
+
   ################################################################################
 
   your-frontend:
@@ -45,10 +67,13 @@ services:
     links:
       - 'floci:floci'
       - 'redis:redis'
+      - 'cdp-defra-id-stub:cdp-defra-id-stub'
     depends_on:
       floci:
         condition: service_healthy
       redis:
+        condition: service_started
+      cdp-defra-id-stub:
         condition: service_started
     env_file:
       - 'compose/aws.env'
@@ -60,6 +85,14 @@ services:
       SESSION_COOKIE_SECURE: false
       USE_SINGLE_INSTANCE_CACHE: true
       REDIS_TLS: false
+    # cdp-defra-id-stub's well-known document advertises its endpoints as
+    # http://localhost:3200 (its own default `appBaseUrl`). That's correct
+    # for the browser (compose publishes 3200:3200 on the host), but from
+    # inside this container "localhost" would otherwise mean itself, not the
+    # stub. Rewriting it to the host gateway routes container-side calls
+    # (token exchange, JWKS fetch) back through the same published port.
+    extra_hosts:
+      - 'localhost:host-gateway'
     networks:
       - cdp-tenant
 

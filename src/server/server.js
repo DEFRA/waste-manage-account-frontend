@@ -4,8 +4,11 @@ import Scooter from '@hapi/scooter'
 
 import { router } from './plugins/router.js'
 import { config } from '#/config/config.js'
+import { auth } from './plugins/auth.js'
+import { crumb } from './plugins/crumb.js'
 import { pulse } from './plugins/pulse.js'
 import { catchAll } from './common/helpers/errors.js'
+import { noStoreHeader } from './plugins/no-store.js'
 import { nunjucksConfig } from '#/config/nunjucks/nunjucks.js'
 import { requestTracing } from './plugins/request-tracing.js'
 import { requestLogger } from './plugins/request-logger.js'
@@ -52,6 +55,13 @@ export async function createServer() {
       strictHeader: false
     }
   })
+
+  server.app.cache = server.cache({
+    cache: config.get('session.cache.name'),
+    segment: 'defra-id-session',
+    expiresIn: config.get('session.idleTtl')
+  })
+
   await server.register([
     requestLogger,
     requestTracing,
@@ -62,10 +72,20 @@ export async function createServer() {
     nunjucksConfig,
     Scooter,
     contentSecurityPolicy,
+    auth
+  ])
+
+  // Routes registered after this point default to requiring the session
+  // strategy; routes needing different behaviour opt out explicitly.
+  server.auth.default('session')
+
+  await server.register([
+    crumb,
     router // Register all the controllers/routes defined in src/server/router.js
   ])
 
   server.ext('onPreResponse', catchAll)
+  server.ext('onPreResponse', noStoreHeader)
 
   return server
 }

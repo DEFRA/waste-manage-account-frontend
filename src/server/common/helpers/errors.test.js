@@ -3,11 +3,13 @@ import { vi } from 'vitest'
 import { catchAll } from './errors.js'
 import { createServer } from '../../server.js'
 import { statusCodes } from '../constants/status-codes.js'
+import { mockOidcDiscovery } from '#/test-helpers/mock-oidc-discovery.js'
 
 describe('#errors', () => {
   let server
 
   beforeAll(async () => {
+    mockOidcDiscovery()
     server = await createServer()
     await server.initialize()
   })
@@ -62,14 +64,16 @@ describe('#catchAll', () => {
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.notFound)
   })
 
-  test('Should provide expected "Forbidden" page', () => {
+  test('Should render the unauthorised view for a "Forbidden" response', () => {
+    const forbiddenHeading = 'You do not have permission to access this page'
+
     catchAll(mockRequest(statusCodes.forbidden), mockToolkit)
 
     expect(mockErrorLogger).not.toHaveBeenCalledWith(mockStack)
-    expect(mockToolkitView).toHaveBeenCalledWith(errorPage, {
-      pageTitle: 'Forbidden',
-      heading: statusCodes.forbidden,
-      message: 'Forbidden'
+    expect(mockToolkitView).toHaveBeenCalledWith('unauthorised/index', {
+      pageTitle: forbiddenHeading,
+      heading: forbiddenHeading,
+      message: 'You do not have the necessary permissions to view this page.'
     })
     expect(mockToolkitCode).toHaveBeenCalledWith(statusCodes.forbidden)
   })

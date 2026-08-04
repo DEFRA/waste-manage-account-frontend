@@ -1,5 +1,5 @@
-export function buildNavigation(request) {
-  return [
+export function buildNavigation(request, auth) {
+  const navigation = [
     {
       text: 'Home',
       href: '/',
@@ -11,4 +11,15 @@ export function buildNavigation(request) {
       current: request?.path === '/about'
     }
   ]
+
+  if (auth?.isAuthenticated) {
+    if (auth.displayName) {
+      navigation.push({ text: `Signed in as ${auth.displayName}` })
+    }
+    navigation.push({ text: 'Sign out', href: '/auth/sign-out' })
+  } else {
+    navigation.push({ text: 'Sign in', href: '/auth/sign-in' })
+  }
+
+  return navigation
 }

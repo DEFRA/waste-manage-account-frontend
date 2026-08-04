@@ -13,6 +13,7 @@ Core delivery platform Node.js Frontend Template.
 - [Local Development](#local-development)
   - [Setup](#setup)
   - [Development](#development)
+  - [DEFRA ID authentication](#defra-id-authentication)
   - [Production](#production)
   - [Npm scripts](#npm-scripts)
   - [Update dependencies](#update-dependencies)
@@ -24,6 +25,7 @@ Core delivery platform Node.js Frontend Template.
   - [Docker Compose](#docker-compose)
   - [Dependabot](#dependabot)
   - [SonarCloud](#sonarcloud)
+- [Deployment](#deployment)
 - [Licence](#licence)
   - [About the licence](#about-the-licence)
 
@@ -107,6 +109,81 @@ To run the application in `development` mode run:
 npm run dev
 ```
 
+### DEFRA ID authentication
+
+Every route requires sign-in by default (`server.auth.default('session')`), backed by
+[DEFRA ID](https://github.com/DEFRA/software-development-standards) via `@hapi/bell`. Locally this
+runs against the [cdp-defra-id-stub](https://github.com/DEFRA/cdp-defra-id-stub), never real DEFRA
+ID — the `defraId.*` config defaults in [src/config/config.js](./src/config/config.js) already point
+at the stub, so no environment setup is required.
+
+#### Starting the stub
+
+The stub needs Redis for its own session storage. Start both alongside the rest of the stack:
+
+```bash
+docker compose up -d redis cdp-defra-id-stub
+```
+
+This publishes the stub on <http://localhost:3200>. Whether you then run this app via
+`docker compose up` (as the `your-frontend` service) or standalone via `npm run dev`, the default
+`defraId.discoveryUrl` (`http://localhost:3200/cdp-defra-id-stub/.well-known/openid-configuration`)
+resolves correctly in both cases — `compose.yml` remaps `localhost` inside the `your-frontend`
+container back to the stub's published port via `extra_hosts: - 'localhost:host-gateway'`, so no
+`DEFRA_ID_*` overrides are needed either way.
+
+#### Signing in
+
+Visit <http://localhost:3000/auth/sign-in>. The stub redirects to its own login page; if no test
+user has been registered yet, it redirects on to a registration form instead. Fill that in (or an
+existing user) to complete sign-in and get redirected back to this app.
+
+#### Registering a test user via the API
+
+Instead of the interactive form, you can pre-register a user directly:
+
+```bash
+curl -H "Content-Type: application/json" -X POST \
+  -d '{
+    "userId": "86a7607c-a1e7-41e5-a0b6-a41680d05a2a",
+    "email": "test.user@example.com",
+    "firstName": "Test",
+    "lastName": "User",
+    "loa": "1",
+    "aal": "1",
+    "enrolmentCount": 1,
+    "enrolmentRequestCount": 1,
+    "relationships": [
+      {
+        "organisationName": "Test Organisation",
+        "relationshipRole": "Employee",
+        "roleName": "Test role",
+        "roleStatus": "1"
+      }
+    ]
+  }' \
+  http://localhost:3200/cdp-defra-id-stub/API/register
+```
+
+The stub's registrations store runs in-memory in this repo's `compose.yml`
+(`REGISTRATIONS_STORE_ENGINE: memory`), so registered users don't survive a stub container restart.
+
+#### Redirect URLs
+
+This app's callback routes — `GET /auth/sign-in-oidc` and `GET /auth/sign-out-oidc` — are built from
+`defraId.callbackBaseUrl` (default `http://localhost:3000`). The stub doesn't enforce redirect URL
+registration the way a real DEFRA ID tenant does, but when onboarding a real tenant both
+`{callbackBaseUrl}/auth/sign-in-oidc` and `{callbackBaseUrl}/auth/sign-out-oidc` must be registered
+with DEFRA ID for each deployed environment.
+
+#### Using real DEFRA ID instead
+
+Override the `DEFRA_ID_*` environment variables (see `src/config/config.js` for the full list) with
+your tenant's discovery URL and credentials. `defraId.stubEnabled` defaults to `!isProduction` purely
+as an informational flag — it isn't read anywhere to change behaviour, so switching providers is just
+a matter of overriding `DEFRA_ID_DISCOVERY_URL`, `DEFRA_ID_CLIENT_ID`, `DEFRA_ID_CLIENT_SECRET`,
+`DEFRA_ID_SERVICE_ID`, and `DEFRA_ID_POLICY`.
+
 ### Production
 
 To mimic the application running in `production` mode locally run:
@@ -186,6 +263,8 @@ A local environment with:
 - Floci (replacing Localstack) for AWS services (S3, SQS)
 - Redis
 - MongoDB
+- [cdp-defra-id-stub](https://github.com/DEFRA/cdp-defra-id-stub) — see
+  [DEFRA ID authentication](#defra-id-authentication)
 - This service.
 - A commented out backend example.
 
@@ -201,6 +280,25 @@ the [.github/example.dependabot.yml](.github/example.dependabot.yml) to `.github
 ### SonarCloud
 
 Instructions for setting up SonarCloud can be found in [sonar-project.properties](./sonar-project.properties).
+
+## Deployment
+
+The following environment variables hold secrets and must be configured for each environment as part
+of the release:
+
+```dotenv
+SESSION_COOKIE_PASSWORD=
+DEFRA_ID_CLIENT_SECRET=
+```
+
+- `SESSION_COOKIE_PASSWORD` — password used to encrypt the session cookie; must be at least 32
+  characters and unique per environment.
+- `DEFRA_ID_CLIENT_SECRET` — client secret for the environment's DEFRA ID tenant (see
+  [DEFRA ID authentication](#defra-id-authentication)).
+
+Set them as environment secrets — never commit their values to the repository. All other
+configuration has sensible defaults in [src/config/config.js](./src/config/config.js) and can be
+overridden per environment with the corresponding environment variables.
 
 ## Licence
 
