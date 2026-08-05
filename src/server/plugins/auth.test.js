@@ -154,7 +154,7 @@ describe('#getBellOptions', () => {
     expect(options.providerParams().response_mode).toBe('form_post')
   })
 
-  test('Should omit response_mode when configured as empty, for stub environments', () => {
+  test('Should omit response_mode when configured as empty', () => {
     config.set('defraId.responseMode', '')
 
     const options = getBellOptions(oidcConfig)
@@ -428,8 +428,8 @@ describe('#auth plugin', () => {
     )
     // No policy is configured by default, matching environments that run
     // cdp-defra-id-stub — the B2C-only `p` param must be absent because
-    // the stub rejects it with a 400. response_mode defaults to form_post;
-    // stub environments suppress it with DEFRA_ID_RESPONSE_MODE="".
+    // the stub rejects it with a 400. response_mode is accepted by both
+    // providers and defaults to form_post.
     expect(location.searchParams.get('response_mode')).toBe('form_post')
     expect(location.searchParams.get('p')).toBeNull()
     expect(location.searchParams.get('state')).toBeTruthy()

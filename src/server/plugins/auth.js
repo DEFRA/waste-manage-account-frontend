@@ -80,10 +80,9 @@ export function getBellOptions(oidcConfig) {
         providerParams.p = policy
       }
 
-      // Defaults to form_post; environments running the stub set
-      // DEFRA_ID_RESPONSE_MODE="" to omit the param for the same stub
-      // reason — see the defraId.responseMode config doc for the callback
-      // work form_post still depends on.
+      // Defaults to form_post; omitted when configured empty — see the
+      // defraId.responseMode config doc for the callback work form_post
+      // still depends on.
       if (responseMode) {
         providerParams.response_mode = responseMode
       }

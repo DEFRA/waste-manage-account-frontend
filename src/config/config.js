@@ -227,13 +227,11 @@ export const config = convict({
     },
     responseMode: {
       // `form_post` makes the provider POST the authorize response to the
-      // callback instead of redirecting with query params. Consuming that
-      // POST still needs a POST-capable /auth/sign-in-oidc route
-      // (@hapi/bell only reads request.query today), a crumb exemption,
-      // and SameSite=None state cookies. Environments running
-      // cdp-defra-id-stub must set DEFRA_ID_RESPONSE_MODE to the empty
-      // string so the param is omitted — the stub 400s on unknown
-      // authorize params.
+      // callback instead of redirecting with query params. Both real
+      // DEFRA ID and cdp-defra-id-stub accept the param, but consuming
+      // the POSTed response still needs a POST-capable /auth/sign-in-oidc
+      // route (@hapi/bell only reads request.query today), a crumb
+      // exemption, and SameSite=None state cookies.
       doc: 'OAuth2 response_mode provider param; empty string omits the param (code-flow default: query on a GET redirect)',
       format: ['', 'query', 'form_post'],
       default: 'form_post',
