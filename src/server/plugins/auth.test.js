@@ -50,6 +50,7 @@ describe('#getBellOptions', () => {
   afterEach(() => {
     config.set('defraId.pkceEnabled', false)
     config.set('defraId.policy', '')
+    config.set('defraId.responseMode', '')
     config.set('defraId.scopes', ['openid', 'offline_access'])
   })
 
@@ -142,6 +143,23 @@ describe('#getBellOptions', () => {
     expect(options.providerParams()).toEqual({
       serviceId: config.get('defraId.serviceId'),
       p: 'b2c_1a_signupsignin'
+    })
+  })
+
+  test('Should omit response_mode by default so the stub accepts the authorize request', () => {
+    const options = getBellOptions(oidcConfig)
+
+    expect(options.providerParams()).not.toHaveProperty('response_mode')
+  })
+
+  test('Should add the response_mode param when one is configured', () => {
+    config.set('defraId.responseMode', 'form_post')
+
+    const options = getBellOptions(oidcConfig)
+
+    expect(options.providerParams()).toEqual({
+      serviceId: config.get('defraId.serviceId'),
+      response_mode: 'form_post'
     })
   })
 

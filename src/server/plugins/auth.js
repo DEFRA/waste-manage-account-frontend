@@ -70,6 +70,7 @@ export function getBellOptions(oidcConfig) {
     providerParams: () => {
       const providerParams = { serviceId: config.get('defraId.serviceId') }
       const policy = config.get('defraId.policy')
+      const responseMode = config.get('defraId.responseMode')
 
       // Sent only when configured: a real DEFRA ID (Azure B2C) tenant
       // requires the policy as its `p` param, while environments running
@@ -77,6 +78,13 @@ export function getBellOptions(oidcConfig) {
       // authorize params outright.
       if (policy) {
         providerParams.p = policy
+      }
+
+      // Sent only when configured, for the same stub reason — and see the
+      // defraId.responseMode config doc before setting `form_post`: the
+      // callback cannot consume a POSTed authorize response yet.
+      if (responseMode) {
+        providerParams.response_mode = responseMode
       }
 
       return providerParams

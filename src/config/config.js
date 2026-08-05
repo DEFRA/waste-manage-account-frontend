@@ -225,6 +225,20 @@ export const config = convict({
       default: '',
       env: 'DEFRA_ID_POLICY'
     },
+    responseMode: {
+      // Left empty so the authorize response arrives on the code-flow
+      // default (query params on a GET redirect), which is what @hapi/bell
+      // consumes and what cdp-defra-id-stub accepts — the stub 400s on
+      // unknown authorize params. Setting `form_post` makes the provider
+      // POST the response instead, which additionally needs a POST-capable
+      // /auth/sign-in-oidc callback (bell only reads request.query today),
+      // a crumb exemption, and SameSite=None state cookies — do not set it
+      // until that work is in place.
+      doc: 'OAuth2 response_mode provider param, sent only when set (e.g. form_post)',
+      format: ['', 'query', 'form_post'],
+      default: '',
+      env: 'DEFRA_ID_RESPONSE_MODE'
+    },
     scopes: {
       // A real DEFRA ID (Azure B2C) tenant additionally needs the client id
       // in this list for an access token to be issued (e.g.
