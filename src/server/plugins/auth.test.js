@@ -2,6 +2,7 @@ import { vi } from 'vitest'
 
 import { config } from '#/config/config.js'
 import { createServer } from '#/server/server.js'
+import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getBellOptions, getCookieOptions, validateSession } from './auth.js'
 import { refreshTokens } from '#/server/auth/refresh-tokens.js'
 import {
@@ -50,7 +51,7 @@ describe('#getBellOptions', () => {
   afterEach(() => {
     config.set('defraId.pkceEnabled', false)
     config.set('defraId.policy', '')
-    config.set('defraId.responseMode', 'form_post')
+    config.set('defraId.responseMode', '')
     config.set('defraId.scopes', ['openid', 'offline_access'])
   })
 
@@ -127,12 +128,11 @@ describe('#getBellOptions', () => {
     expect(yar.get('redirect')).toBe('/')
   })
 
-  test('Should send serviceId and the default form_post response_mode when no policy is configured', () => {
+  test('Should send only serviceId when no policy or response mode is configured', () => {
     const options = getBellOptions(oidcConfig)
 
     expect(options.providerParams()).toEqual({
-      serviceId: config.get('defraId.serviceId'),
-      response_mode: 'form_post'
+      serviceId: config.get('defraId.serviceId')
     })
   })
 
@@ -143,24 +143,18 @@ describe('#getBellOptions', () => {
 
     expect(options.providerParams()).toEqual({
       serviceId: config.get('defraId.serviceId'),
-      response_mode: 'form_post',
       p: 'b2c_1a_signupsignin'
     })
   })
 
-  test('Should send response_mode form_post by default', () => {
-    const options = getBellOptions(oidcConfig)
-
-    expect(options.providerParams().response_mode).toBe('form_post')
-  })
-
-  test('Should omit response_mode when configured as empty', () => {
-    config.set('defraId.responseMode', '')
+  test('Should add the response_mode param when one is configured', () => {
+    config.set('defraId.responseMode', 'form_post')
 
     const options = getBellOptions(oidcConfig)
 
     expect(options.providerParams()).toEqual({
-      serviceId: config.get('defraId.serviceId')
+      serviceId: config.get('defraId.serviceId'),
+      response_mode: 'form_post'
     })
   })
 
@@ -357,6 +351,13 @@ describe('#validateSession', () => {
   })
 })
 
+const testSessionId = 'integration-session'
+
+function findSessionCookie(headers) {
+  const setCookie = [headers['set-cookie']].flat().filter(Boolean)
+  return setCookie.find((cookie) => cookie.startsWith('defra-id-session='))
+}
+
 describe('#auth plugin', () => {
   let server
 
@@ -382,6 +383,25 @@ describe('#auth plugin', () => {
       method: 'GET',
       path: '/__test-default-auth-route',
       handler: () => 'ok'
+    })
+
+    // Mirrors what signInOidcController does on a successful exchange,
+    // from a path under /auth/ so the emitted cookie's scope matches the
+    // real callback's.
+    server.route({
+      method: 'GET',
+      path: '/auth/__test-sign-in-callback',
+      options: { auth: false },
+      async handler(request) {
+        await request.server.app.cache.set(testSessionId, {
+          createdAt: Date.now(),
+          expiresAt: Date.now() + 60000,
+          scope: ['user'],
+          profile: { displayName: 'Ada Lovelace' }
+        })
+        request.cookieAuth.set({ sessionId: testSessionId })
+        return 'ok'
+      }
     })
 
     await server.initialize()
@@ -426,13 +446,46 @@ describe('#auth plugin', () => {
     expect(location.searchParams.get('serviceId')).toBe(
       config.get('defraId.serviceId')
     )
-    // No policy is configured by default, matching environments that run
-    // cdp-defra-id-stub — the B2C-only `p` param must be absent because
-    // the stub rejects it with a 400. response_mode is accepted by both
-    // providers and defaults to form_post.
-    expect(location.searchParams.get('response_mode')).toBe('form_post')
+    // No policy or response mode is configured by default, matching
+    // environments that run cdp-defra-id-stub — its authorize schema
+    // rejects both params with a 400.
+    expect(location.searchParams.get('response_mode')).toBeNull()
     expect(location.searchParams.get('p')).toBeNull()
     expect(location.searchParams.get('state')).toBeTruthy()
+  })
+
+  // Regression cover for the infinite sign-in loop: the session cookie is
+  // set from a path under /auth/, so without an explicit `path: '/'` in
+  // getCookieOptions hapi emits no Path attribute and a browser scopes the
+  // cookie to /auth/ — never sending it anywhere else. Asserting the
+  // emitted Set-Cookie header rather than the options object means this
+  // still fails if @hapi/cookie ever stops honouring the option.
+  test('Should scope the session cookie to the whole site, not the callback directory', async () => {
+    const { headers } = await server.inject({
+      method: 'GET',
+      url: '/auth/__test-sign-in-callback'
+    })
+
+    expect(findSessionCookie(headers)).toMatch(/;\s*Path=\/(;|$)/i)
+  })
+
+  // server.inject sends whatever cookie header it is given regardless of
+  // scope, so this cannot prove path scoping — it proves the emitted
+  // cookie is a working session credential on an unrelated route.
+  test('Should authenticate a request on an unrelated path with the cookie set at the callback', async () => {
+    const signIn = await server.inject({
+      method: 'GET',
+      url: '/auth/__test-sign-in-callback'
+    })
+    const sessionCookie = findSessionCookie(signIn.headers).split(';')[0]
+
+    const { statusCode } = await server.inject({
+      method: 'GET',
+      url: '/__test-session-route',
+      headers: { cookie: sessionCookie }
+    })
+
+    expect(statusCode).toBe(statusCodes.ok)
   })
 
   test('Should redirect a signed-out request to sign-in with the original path preserved', async () => {

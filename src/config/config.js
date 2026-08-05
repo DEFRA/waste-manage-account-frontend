@@ -226,15 +226,22 @@ export const config = convict({
       env: 'DEFRA_ID_POLICY'
     },
     responseMode: {
-      // `form_post` makes the provider POST the authorize response to the
-      // callback instead of redirecting with query params. Both real
-      // DEFRA ID and cdp-defra-id-stub accept the param, but consuming
-      // the POSTed response still needs a POST-capable /auth/sign-in-oidc
-      // route (@hapi/bell only reads request.query today), a crumb
-      // exemption, and SameSite=None state cookies.
-      doc: 'OAuth2 response_mode provider param; empty string omits the param (code-flow default: query on a GET redirect)',
+      // Left empty so the authorize response arrives on the code-flow
+      // default (query params on a GET redirect), which is the only shape
+      // anything downstream can consume today. Setting `form_post` makes
+      // the provider POST the response instead, and nothing is ready for
+      // that: /auth/sign-in-oidc is GET-only, @hapi/bell reads the
+      // response from request.query, crumb would reject the cross-site
+      // POST, and bell's state cookie is SameSite=Lax so the browser
+      // wouldn't send it. cdp-defra-id-stub also still rejects the param —
+      // its authorize schema (src/server/oidc/helpers/schemas/
+      // login-validation.js) has no response_mode key and isn't
+      // .unknown(true); stub PR #38 added the form_post branch to the
+      // controller but left that schema untouched, so validation 400s
+      // before the branch is reached.
+      doc: 'OAuth2 response_mode provider param, sent only when set (e.g. form_post)',
       format: ['', 'query', 'form_post'],
-      default: 'form_post',
+      default: '',
       env: 'DEFRA_ID_RESPONSE_MODE'
     },
     scopes: {

@@ -40,7 +40,7 @@ describe('#config', () => {
       )
       expect(config.get('defraId.serviceId')).toBe('stub-service-id')
       expect(config.get('defraId.policy')).toBe('')
-      expect(config.get('defraId.responseMode')).toBe('form_post')
+      expect(config.get('defraId.responseMode')).toBe('')
       expect(config.get('defraId.scopes')).toEqual(['openid', 'offline_access'])
       expect(config.get('defraId.callbackBaseUrl')).toBe(
         'http://localhost:3000'

@@ -43,7 +43,7 @@ describe('#serveStaticFiles', () => {
       })
 
       afterEach(async () => {
-        await rm(fixtureFile, { force: true })
+        await rm(fixtureDir, { recursive: true, force: true })
       })
 
       test('Should serve the asset to a signed-out request without redirecting to sign-in', async () => {

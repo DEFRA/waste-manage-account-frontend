@@ -80,9 +80,9 @@ export function getBellOptions(oidcConfig) {
         providerParams.p = policy
       }
 
-      // Defaults to form_post; omitted when configured empty — see the
-      // defraId.responseMode config doc for the callback work form_post
-      // still depends on.
+      // Sent only when configured, for the same stub reason — and see the
+      // defraId.responseMode config doc before setting `form_post`: no
+      // provider or route can complete that flow yet.
       if (responseMode) {
         providerParams.response_mode = responseMode
       }
