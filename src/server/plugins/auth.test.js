@@ -50,6 +50,7 @@ describe('#getBellOptions', () => {
   afterEach(() => {
     config.set('defraId.pkceEnabled', false)
     config.set('defraId.policy', '')
+    config.set('defraId.responseMode', 'form_post')
     config.set('defraId.scopes', ['openid', 'offline_access'])
   })
 
@@ -126,11 +127,12 @@ describe('#getBellOptions', () => {
     expect(yar.get('redirect')).toBe('/')
   })
 
-  test('Should send only serviceId when no policy is configured', () => {
+  test('Should send serviceId and the default form_post response_mode when no policy is configured', () => {
     const options = getBellOptions(oidcConfig)
 
     expect(options.providerParams()).toEqual({
-      serviceId: config.get('defraId.serviceId')
+      serviceId: config.get('defraId.serviceId'),
+      response_mode: 'form_post'
     })
   })
 
@@ -141,7 +143,24 @@ describe('#getBellOptions', () => {
 
     expect(options.providerParams()).toEqual({
       serviceId: config.get('defraId.serviceId'),
+      response_mode: 'form_post',
       p: 'b2c_1a_signupsignin'
+    })
+  })
+
+  test('Should send response_mode form_post by default', () => {
+    const options = getBellOptions(oidcConfig)
+
+    expect(options.providerParams().response_mode).toBe('form_post')
+  })
+
+  test('Should omit response_mode when configured as empty, for stub environments', () => {
+    config.set('defraId.responseMode', '')
+
+    const options = getBellOptions(oidcConfig)
+
+    expect(options.providerParams()).toEqual({
+      serviceId: config.get('defraId.serviceId')
     })
   })
 
@@ -408,9 +427,10 @@ describe('#auth plugin', () => {
       config.get('defraId.serviceId')
     )
     // No policy is configured by default, matching environments that run
-    // cdp-defra-id-stub — the B2C-only params must be absent because the
-    // stub rejects them with a 400.
-    expect(location.searchParams.get('response_mode')).toBeNull()
+    // cdp-defra-id-stub — the B2C-only `p` param must be absent because
+    // the stub rejects it with a 400. response_mode defaults to form_post;
+    // stub environments suppress it with DEFRA_ID_RESPONSE_MODE="".
+    expect(location.searchParams.get('response_mode')).toBe('form_post')
     expect(location.searchParams.get('p')).toBeNull()
     expect(location.searchParams.get('state')).toBeTruthy()
   })

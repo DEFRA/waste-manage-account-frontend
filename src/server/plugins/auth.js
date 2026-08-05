@@ -70,6 +70,7 @@ export function getBellOptions(oidcConfig) {
     providerParams: () => {
       const providerParams = { serviceId: config.get('defraId.serviceId') }
       const policy = config.get('defraId.policy')
+      const responseMode = config.get('defraId.responseMode')
 
       // Sent only when configured: a real DEFRA ID (Azure B2C) tenant
       // requires the policy as its `p` param, while environments running
@@ -77,6 +78,14 @@ export function getBellOptions(oidcConfig) {
       // authorize params outright.
       if (policy) {
         providerParams.p = policy
+      }
+
+      // Defaults to form_post; environments running the stub set
+      // DEFRA_ID_RESPONSE_MODE="" to omit the param for the same stub
+      // reason — see the defraId.responseMode config doc for the callback
+      // work form_post still depends on.
+      if (responseMode) {
+        providerParams.response_mode = responseMode
       }
 
       return providerParams
