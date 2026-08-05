@@ -59,17 +59,17 @@ export const config = convict({
     env: 'ASSET_PATH'
   },
   isProduction: {
-    doc: 'If this application running in the production environment',
+    doc: 'True when NODE_ENV=production: the app is running as a built artifact. This is every deployed CDP environment (including dev and test), not just the CDP prod environment',
     format: Boolean,
     default: isProduction
   },
   isDevelopment: {
-    doc: 'If this application running in the development environment',
+    doc: 'True when NODE_ENV=development: local development via `npm run dev`. Not the CDP dev environment, which runs the built artifact with NODE_ENV=production',
     format: Boolean,
     default: isDevelopment
   },
   isTest: {
-    doc: 'If this application running in the test environment',
+    doc: 'True when NODE_ENV=test: the Vitest suite (vitest sets NODE_ENV=test itself). Not the CDP test environment, which runs the built artifact with NODE_ENV=production',
     format: Boolean,
     default: isTest
   },

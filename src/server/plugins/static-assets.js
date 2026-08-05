@@ -39,12 +39,18 @@ async function serveFromVite(vite, request, h) {
  * route without its own auth config, and hapi-connect's internal route
  * can't be given one — which left the assets behind sign-in, so any
  * signed-out page rendered completely unstyled.
+ *
+ * `isDevelopment` means `NODE_ENV=development` (set by `npm run dev`),
+ * not the CDP dev environment: every deployed CDP environment runs the
+ * built artifact with `NODE_ENV=production`, where Vite — a
+ * devDependency — is absent. Prebuilt assets are therefore the default;
+ * the Vite branch is strictly opt-in.
  */
 export const staticAssets = {
   plugin: {
     name: 'static-assets',
     async register(server) {
-      if (!config.get('isProduction') && !config.get('isTest')) {
+      if (config.get('isDevelopment')) {
         const createViteServer = (await import('vite')).createServer
         const vite = await createViteServer({
           server: { middlewareMode: true },

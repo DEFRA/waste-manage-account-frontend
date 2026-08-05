@@ -9,14 +9,14 @@ describe('#staticAssets (Vite dev middleware)', () => {
   beforeAll(async () => {
     // Force the local-development branch so the route mounts the real Vite
     // dev middleware rather than the prebuilt .public directory.
-    config.set('isTest', false)
+    config.set('isDevelopment', true)
     mockOidcDiscovery()
     server = await createServer()
     await server.initialize()
   })
 
   afterAll(async () => {
-    config.set('isTest', true)
+    config.set('isDevelopment', false)
     await server.stop({ timeout: 0 })
   })
 
