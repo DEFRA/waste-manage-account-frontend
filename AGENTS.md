@@ -14,6 +14,15 @@ The rules below are the always-applicable summary. The full standards, tailored 
 - [continuous-integration.md](doc/rules/continuous-integration.md) — workflow changes, action SHA-pinning, Sonar
 - [quality-assurance.md](doc/rules/quality-assurance.md) — acceptance criteria, accessibility (WCAG 2.2 AA), test approach
 
+## Reusable skills
+
+Agent-invocable procedures live in `.agents/skills/` in the open Agent Skills format (`SKILL.md`). Codex and GitHub Copilot read that directory natively; Claude Code reads the same skills through the `.claude/skills/` symlinks. When a task matches one of these skills, follow the skill rather than improvising:
+
+- `pr-review` — review a colleague's PR against the linked Jira story and these standards. Findings are reported for a human to act on; the AI never approves, requests changes, or comments.
+- `pr-preflight` — pre-flight check of your own PR before requesting human review; may fix mechanical, in-spec blocking findings (new commit, plain push, full gate first).
+
+Both skills enforce scope discipline: AI-suggested changes must be in spec (the linked story's acceptance criteria plus these standards on the lines the PR touches). Valuable out-of-scope findings are raised as suggested new Jira stories, never as changes or change requests on the PR.
+
 ## Language and frameworks
 
 - Vanilla JavaScript only. Never introduce TypeScript, type annotations, or `.ts` files — this requires a formally approved exception.
