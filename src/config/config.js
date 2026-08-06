@@ -226,19 +226,24 @@ export const config = convict({
       env: 'DEFRA_ID_POLICY'
     },
     responseMode: {
-      // Left empty so the authorize response arrives on the code-flow
-      // default (query params on a GET redirect), which is the only shape
-      // anything downstream can consume today. Setting `form_post` makes
-      // the provider POST the response instead, and nothing is ready for
-      // that: /auth/sign-in-oidc is GET-only, @hapi/bell reads the
-      // response from request.query, crumb would reject the cross-site
-      // POST, and bell's state cookie is SameSite=Lax so the browser
-      // wouldn't send it. cdp-defra-id-stub also still rejects the param —
-      // its authorize schema (src/server/oidc/helpers/schemas/
-      // login-validation.js) has no response_mode key and isn't
-      // .unknown(true); stub PR #38 added the form_post branch to the
+      // Left empty for environments running cdp-defra-id-stub, which
+      // rejects the param outright — its authorize schema (src/server/oidc/
+      // helpers/schemas/login-validation.js) has no response_mode key and
+      // isn't .unknown(true); stub PR #38 added a form_post branch to the
       // controller but left that schema untouched, so validation 400s
-      // before the branch is reached.
+      // before the branch is reached. With the param omitted the stub
+      // redirects back with query params on a GET, which is the only shape
+      // anything downstream can consume today.
+      // Real DEFRA ID (CIDM 2.0) behaves differently when the param is
+      // omitted: per the Technical Onboarding Guide for Core Service
+      // (§6.1), it defaults to form_post, POSTing the response to the
+      // redirect_uri. Environments using a real tenant must therefore set
+      // this explicitly — `query` for now, because nothing here is ready
+      // for form_post: /auth/sign-in-oidc is GET-only, @hapi/bell reads
+      // the response from request.query, crumb would reject the cross-site
+      // POST, and bell's state cookie is SameSite=Lax so the browser
+      // wouldn't send it. Once a POST callback exists, prefer form_post
+      // (DEFRA's recommendation — keeps code/state out of URL logs).
       doc: 'OAuth2 response_mode provider param, sent only when set (e.g. form_post)',
       format: ['', 'query', 'form_post'],
       default: '',
