@@ -87,8 +87,12 @@ otherwise work through them in order — the result must be the same either way.
      neighbouring code, refactoring opportunities, "while we're here"
      improvements. Never ask for these in the PR. Instead draft a new Jira
      story for each: a one-line title, a short description of the problem and
-     the value of fixing it, ready to paste into the backlog. This keeps good
-     ideas from being lost without letting them derail a focused PR.
+     the value of fixing it, and the impact of not addressing it, ready to
+     paste into the backlog. Stating the consequence of leaving it alongside
+     the benefit gives whoever triages the story a balanced cost-vs-benefit
+     view — and if you cannot name a concrete impact, that is a sign the
+     story is not worth raising. This keeps good ideas from being lost
+     without letting them derail a focused PR.
 7. **Check the description against the diff** as a final pass: claims that
    don't match the code are blocking; a missing Jira link or test note is
    non-blocking.
@@ -115,6 +119,7 @@ Lenses: <applied>  (scoped out: <lens — reason>)
 ### Suggested new stories (out of scope for this PR)
 1. <Draft story title>
    <Why it's valuable, where the issue lives. Not a request against this PR.>
+   Impact if not addressed: <concrete consequence — risk, cost, or missed benefit.>
 
 ### Verdict
 <"Looks mergeable pending human review — no blocking findings." or

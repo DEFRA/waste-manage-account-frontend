@@ -63,7 +63,9 @@ otherwise work through them in order.
 5. **Classify every finding**: **blocking (in spec)** — a maintainer would
    send it back, or it violates a repo standard on lines the PR touches;
    **non-blocking (in spec)** — your discretion; **out of scope** — draft a
-   new Jira story instead (title + short description, ready for the backlog).
+   new Jira story instead: title, short description, and the impact of not
+   addressing it, ready for the backlog. Stating the consequence alongside
+   the benefit gives triage a balanced cost-vs-benefit view.
 6. **Check the description against the diff** — mismatched claims are
    blocking; fix the description or the code, whichever is wrong.
 
@@ -122,6 +124,7 @@ Lenses: <applied>  (scoped out: <lens — reason>)
 ### Suggested new stories (out of scope for this PR)
 1. <Draft story title>
    <Why it's valuable, where the issue lives.>
+   Impact if not addressed: <concrete consequence — risk, cost, or missed benefit.>
 
 ### Verdict
 <one of:>
