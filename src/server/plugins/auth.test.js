@@ -2,6 +2,7 @@ import { vi } from 'vitest'
 
 import { config } from '#/config/config.js'
 import { createServer } from '#/server/server.js'
+import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { getBellOptions, getCookieOptions, validateSession } from './auth.js'
 import { refreshTokens } from '#/server/auth/refresh-tokens.js'
 import {
@@ -49,6 +50,9 @@ function createFakeRequest(cache) {
 describe('#getBellOptions', () => {
   afterEach(() => {
     config.set('defraId.pkceEnabled', false)
+    config.set('defraId.policy', '')
+    config.set('defraId.responseMode', '')
+    config.set('defraId.scopes', ['openid', 'offline_access'])
   })
 
   const oidcConfig = {
@@ -63,14 +67,26 @@ describe('#getBellOptions', () => {
 
     expect(options.provider.auth).toBe(oidcConfig.authorizationEndpoint)
     expect(options.provider.token).toBe(oidcConfig.tokenEndpoint)
+    expect(options.provider.scope).toEqual(['openid', 'offline_access'])
+    expect(options.provider.useParamsAuth).toBe(true)
+    expect(options.clientId).toBe(config.get('defraId.clientId'))
+    expect(options.isSecure).toBe(config.get('session.cookie.secure'))
+  })
+
+  test('Should request the scopes configured for a real tenant', () => {
+    config.set('defraId.scopes', [
+      'openid',
+      'offline_access',
+      config.get('defraId.clientId')
+    ])
+
+    const options = getBellOptions(oidcConfig)
+
     expect(options.provider.scope).toEqual([
       'openid',
       'offline_access',
       config.get('defraId.clientId')
     ])
-    expect(options.provider.useParamsAuth).toBe(true)
-    expect(options.clientId).toBe(config.get('defraId.clientId'))
-    expect(options.isSecure).toBe(config.get('session.cookie.secure'))
   })
 
   test('Should omit pkce when defraId.pkceEnabled is false', () => {
@@ -112,13 +128,33 @@ describe('#getBellOptions', () => {
     expect(yar.get('redirect')).toBe('/')
   })
 
-  test('Should build providerParams from defraId config', () => {
+  test('Should send only serviceId when no policy or response mode is configured', () => {
+    const options = getBellOptions(oidcConfig)
+
+    expect(options.providerParams()).toEqual({
+      serviceId: config.get('defraId.serviceId')
+    })
+  })
+
+  test('Should add the `p` param when a policy is configured', () => {
+    config.set('defraId.policy', 'b2c_1a_signupsignin')
+
     const options = getBellOptions(oidcConfig)
 
     expect(options.providerParams()).toEqual({
       serviceId: config.get('defraId.serviceId'),
-      p: config.get('defraId.policy'),
-      response_mode: 'query'
+      p: 'b2c_1a_signupsignin'
+    })
+  })
+
+  test('Should add the response_mode param when one is configured', () => {
+    config.set('defraId.responseMode', 'form_post')
+
+    const options = getBellOptions(oidcConfig)
+
+    expect(options.providerParams()).toEqual({
+      serviceId: config.get('defraId.serviceId'),
+      response_mode: 'form_post'
     })
   })
 
@@ -165,6 +201,7 @@ describe('#getCookieOptions', () => {
     expect(options.cookie.isSecure).toBe(config.get('session.cookie.secure'))
     expect(options.cookie.isSameSite).toBe('Lax')
     expect(options.cookie.ttl).toBe(config.get('session.cookie.ttl'))
+    expect(options.cookie.path).toBe('/')
     expect(options.redirectTo).toBe('/auth/sign-in')
     expect(options.appendNext).toBe('redirect')
     expect(options.validate).toBe(validateSession)
@@ -314,6 +351,13 @@ describe('#validateSession', () => {
   })
 })
 
+const testSessionId = 'integration-session'
+
+function findSessionCookie(headers) {
+  const setCookie = [headers['set-cookie']].flat().filter(Boolean)
+  return setCookie.find((cookie) => cookie.startsWith('defra-id-session='))
+}
+
 describe('#auth plugin', () => {
   let server
 
@@ -339,6 +383,25 @@ describe('#auth plugin', () => {
       method: 'GET',
       path: '/__test-default-auth-route',
       handler: () => 'ok'
+    })
+
+    // Mirrors what signInOidcController does on a successful exchange,
+    // from a path under /auth/ so the emitted cookie's scope matches the
+    // real callback's.
+    server.route({
+      method: 'GET',
+      path: '/auth/__test-sign-in-callback',
+      options: { auth: false },
+      async handler(request) {
+        await request.server.app.cache.set(testSessionId, {
+          createdAt: Date.now(),
+          expiresAt: Date.now() + 60000,
+          scope: ['user'],
+          profile: { displayName: 'Ada Lovelace' }
+        })
+        request.cookieAuth.set({ sessionId: testSessionId })
+        return 'ok'
+      }
     })
 
     await server.initialize()
@@ -383,8 +446,46 @@ describe('#auth plugin', () => {
     expect(location.searchParams.get('serviceId')).toBe(
       config.get('defraId.serviceId')
     )
-    expect(location.searchParams.get('response_mode')).toBe('query')
+    // No policy or response mode is configured by default, matching
+    // environments that run cdp-defra-id-stub — its authorize schema
+    // rejects both params with a 400.
+    expect(location.searchParams.get('response_mode')).toBeNull()
+    expect(location.searchParams.get('p')).toBeNull()
     expect(location.searchParams.get('state')).toBeTruthy()
+  })
+
+  // Regression cover for the infinite sign-in loop: the session cookie is
+  // set from a path under /auth/, so without an explicit `path: '/'` in
+  // getCookieOptions hapi emits no Path attribute and a browser scopes the
+  // cookie to /auth/ — never sending it anywhere else. Asserting the
+  // emitted Set-Cookie header rather than the options object means this
+  // still fails if @hapi/cookie ever stops honouring the option.
+  test('Should scope the session cookie to the whole site, not the callback directory', async () => {
+    const { headers } = await server.inject({
+      method: 'GET',
+      url: '/auth/__test-sign-in-callback'
+    })
+
+    expect(findSessionCookie(headers)).toMatch(/;\s*Path=\/(;|$)/i)
+  })
+
+  // server.inject sends whatever cookie header it is given regardless of
+  // scope, so this cannot prove path scoping — it proves the emitted
+  // cookie is a working session credential on an unrelated route.
+  test('Should authenticate a request on an unrelated path with the cookie set at the callback', async () => {
+    const signIn = await server.inject({
+      method: 'GET',
+      url: '/auth/__test-sign-in-callback'
+    })
+    const sessionCookie = findSessionCookie(signIn.headers).split(';')[0]
+
+    const { statusCode } = await server.inject({
+      method: 'GET',
+      url: '/__test-session-route',
+      headers: { cookie: sessionCookie }
+    })
+
+    expect(statusCode).toBe(statusCodes.ok)
   })
 
   test('Should redirect a signed-out request to sign-in with the original path preserved', async () => {

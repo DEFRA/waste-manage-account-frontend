@@ -39,7 +39,9 @@ describe('#config', () => {
         '63983fc2-cfff-45bb-8ec2-959e21062b9a'
       )
       expect(config.get('defraId.serviceId')).toBe('stub-service-id')
-      expect(config.get('defraId.policy')).toBe('stub-policy')
+      expect(config.get('defraId.policy')).toBe('')
+      expect(config.get('defraId.responseMode')).toBe('')
+      expect(config.get('defraId.scopes')).toEqual(['openid', 'offline_access'])
       expect(config.get('defraId.callbackBaseUrl')).toBe(
         'http://localhost:3000'
       )
@@ -47,7 +49,6 @@ describe('#config', () => {
       expect(config.get('defraId.clockToleranceSeconds')).toBe(60)
       expect(config.get('defraId.discoveryCacheTtlSeconds')).toBe(3600)
       expect(config.get('defraId.pkceEnabled')).toBe(false)
-      expect(config.get('defraId.stubEnabled')).toBe(true)
     })
 
     test('Should mark clientSecret as sensitive', () => {

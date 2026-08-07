@@ -50,30 +50,45 @@ async function profile(credentials, params) {
  * so there's no front-channel token for a nonce to protect.
  */
 export function getBellOptions(oidcConfig) {
-  const clientId = config.get('defraId.clientId')
-
   return {
     provider: {
       protocol: 'oauth2',
       useParamsAuth: true,
       auth: oidcConfig.authorizationEndpoint,
       token: oidcConfig.tokenEndpoint,
-      scope: ['openid', 'offline_access', clientId],
+      scope: config.get('defraId.scopes'),
       profile,
       ...(config.get('defraId.pkceEnabled') ? { pkce: 'S256' } : {})
     },
     password: config.get('session.cookie.password'),
-    clientId,
+    clientId: config.get('defraId.clientId'),
     clientSecret: config.get('defraId.clientSecret'),
     isSecure: config.get('session.cookie.secure'),
     // 'Lax' so the state cookie survives the top-level redirect back from
     // DEFRA ID; the default 'Strict' would drop it on that cross-site hop.
     isSameSite: 'Lax',
-    providerParams: () => ({
-      serviceId: config.get('defraId.serviceId'),
-      p: config.get('defraId.policy'),
-      response_mode: 'query'
-    }),
+    providerParams: () => {
+      const providerParams = { serviceId: config.get('defraId.serviceId') }
+      const policy = config.get('defraId.policy')
+      const responseMode = config.get('defraId.responseMode')
+
+      // Sent only when configured: a real DEFRA ID (Azure B2C) tenant
+      // requires the policy as its `p` param, while environments running
+      // cdp-defra-id-stub leave it unset — the stub rejects unknown
+      // authorize params outright.
+      if (policy) {
+        providerParams.p = policy
+      }
+
+      // Sent only when configured, for the same stub reason — and see the
+      // defraId.responseMode config doc before setting `form_post`: no
+      // provider or route can complete that flow yet.
+      if (responseMode) {
+        providerParams.response_mode = responseMode
+      }
+
+      return providerParams
+    },
     location(request) {
       const redirect = getSafeRedirect(request.query.redirect)
       request.yar.set('redirect', redirect)
@@ -159,7 +174,12 @@ export function getCookieOptions() {
       password: config.get('session.cookie.password'),
       isSecure: config.get('session.cookie.secure'),
       isSameSite: 'Lax',
-      ttl: config.get('session.cookie.ttl')
+      ttl: config.get('session.cookie.ttl'),
+      // Without an explicit path the browser scopes the cookie to the
+      // directory of the URL that set it (/auth/, from the sign-in-oidc
+      // callback), so it's never sent on any other page and every request
+      // redirect-loops back through sign-in.
+      path: '/'
     },
     redirectTo: '/auth/sign-in',
     appendNext: 'redirect',

@@ -59,17 +59,17 @@ export const config = convict({
     env: 'ASSET_PATH'
   },
   isProduction: {
-    doc: 'If this application running in the production environment',
+    doc: 'True when NODE_ENV=production: the app is running as a built artifact. This is every deployed CDP environment (including dev and test), not just the CDP prod environment',
     format: Boolean,
     default: isProduction
   },
   isDevelopment: {
-    doc: 'If this application running in the development environment',
+    doc: 'True when NODE_ENV=development: local development via `npm run dev`. Not the CDP dev environment, which runs the built artifact with NODE_ENV=production',
     format: Boolean,
     default: isDevelopment
   },
   isTest: {
-    doc: 'If this application running in the test environment',
+    doc: 'True when NODE_ENV=test: the Vitest suite (vitest sets NODE_ENV=test itself). Not the CDP test environment, which runs the built artifact with NODE_ENV=production',
     format: Boolean,
     default: isTest
   },
@@ -216,11 +216,50 @@ export const config = convict({
       env: 'DEFRA_ID_SERVICE_ID'
     },
     policy: {
-      // Stub placeholder only — the real value is confirmed with the DEFRA ID team during onboarding and also determines SSO grouping with other services.
-      doc: 'DEFRA ID policy (the `p` provider param) — shared policy value groups SSO across services',
+      // Left empty for environments running cdp-defra-id-stub, which rejects
+      // the B2C-only `p` param. The real value is confirmed with the DEFRA ID
+      // team during onboarding and also determines SSO grouping with other
+      // services — set it only where a real tenant is in use.
+      doc: 'DEFRA ID (Azure B2C) policy, sent as the `p` provider param when set — shared policy value groups SSO across services',
       format: String,
-      default: 'stub-policy',
+      default: '',
       env: 'DEFRA_ID_POLICY'
+    },
+    responseMode: {
+      // Left empty for environments running cdp-defra-id-stub, which
+      // rejects the param outright — its authorize schema (src/server/oidc/
+      // helpers/schemas/login-validation.js) has no response_mode key and
+      // isn't .unknown(true); stub PR #38 added a form_post branch to the
+      // controller but left that schema untouched, so validation 400s
+      // before the branch is reached. With the param omitted the stub
+      // redirects back with query params on a GET, which is the only shape
+      // anything downstream can consume today.
+      // Real DEFRA ID (CIDM 2.0) behaves differently when the param is
+      // omitted: per the Technical Onboarding Guide for Core Service
+      // (§6.1), it defaults to form_post, POSTing the response to the
+      // redirect_uri. Environments using a real tenant must therefore set
+      // this explicitly — `query` for now, because nothing here is ready
+      // for form_post: /auth/sign-in-oidc is GET-only, @hapi/bell reads
+      // the response from request.query, crumb would reject the cross-site
+      // POST, and bell's state cookie is SameSite=Lax so the browser
+      // wouldn't send it. Once a POST callback exists, prefer form_post
+      // (DEFRA's recommendation — keeps code/state out of URL logs).
+      doc: 'OAuth2 response_mode provider param, sent only when set (e.g. form_post)',
+      format: ['', 'query', 'form_post'],
+      default: '',
+      env: 'DEFRA_ID_RESPONSE_MODE'
+    },
+    scopes: {
+      // A real DEFRA ID (Azure B2C) tenant additionally needs the client id
+      // in this list for an access token to be issued (e.g.
+      // "openid,offline_access,<client id>"); cdp-defra-id-stub rejects the
+      // bare client id, so environments running the stub keep the default.
+      // The app's own authorisation is unaffected either way — session scope
+      // is derived from token claims in get-permissions.js.
+      doc: 'OAuth2 scopes requested at sign-in, comma separated',
+      format: Array,
+      default: ['openid', 'offline_access'],
+      env: 'DEFRA_ID_SCOPES'
     },
     callbackBaseUrl: {
       doc: 'Base URL this service is reachable on, used to build DEFRA ID sign-in/sign-out callback URLs',
@@ -251,12 +290,6 @@ export const config = convict({
       format: Boolean,
       default: false,
       env: 'DEFRA_ID_PKCE_ENABLED'
-    },
-    stubEnabled: {
-      doc: 'Whether the app is running against the local cdp-defra-id-stub rather than a real DEFRA ID tenant',
-      format: Boolean,
-      default: !isProduction,
-      env: 'DEFRA_ID_STUB_ENABLED'
     }
   },
   redis: {
