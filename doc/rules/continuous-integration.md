@@ -38,7 +38,7 @@ To update an action, test the new version, then update the SHA. Find the SHA by 
 
 ## Security in CI
 
-- **Dependabot** enabled per repository with grouped updates (activate by renaming `.github/example.dependabot.yml` to `.github/dependabot.yml`).
+- **Dependabot** enabled per repository with grouped updates.
 - **Dependency review action** in the PR workflow to block newly-introduced vulnerable packages.
 - **GitHub Security tab** reviewed regularly; open alerts must be resolved. This includes vulnerabilities in GitHub Actions themselves.
 
