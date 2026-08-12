@@ -1,7 +1,7 @@
-const excludedPaths = ['/health', '/favicon.ico']
+const excludedPaths = new Set(['/health', '/favicon.ico'])
 
 function isExcludedPath(path) {
-  return path.startsWith('/public') || excludedPaths.includes(path)
+  return path.startsWith('/public') || excludedPaths.has(path)
 }
 
 /**
