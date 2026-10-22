@@ -36,7 +36,7 @@
   "author": "Defra DDTS",
   "license": "OGL-UK-3.0",
   "dependencies": {
-    "@defra/cdp-auditing": "0.6.1",
+    "@defra/cdp-auditing": "0.6.2",
     "@defra/cdp-metrics": "0.6.1",
     "@defra/hapi-secure-context": "0.4.1",
     "@defra/hapi-tracing": "1.30.1",
@@ -70,7 +70,7 @@
     "undici": "8.11.2"
   },
   "devDependencies": {
-    "@babel/preset-env": "8.0.6",
+    "@babel/preset-env": "8.0.7",
     "@vitest/coverage-v8": "5.0.4",
     "cheerio": "1.2.0",
     "eslint": "9.39.2",
@@ -78,9 +78,9 @@
     "neostandard": "0.14.0",
     "nodemon": "3.1.14",
     "npm-run-all": "4.1.5",
-    "prettier": "3.9.8",
+    "prettier": "3.9.10",
     "sass-embedded": "1.105.1",
-    "stylelint": "17.15.0",
+    "stylelint": "17.16.0",
     "stylelint-config-gds": "3.0.0",
     "vite": "8.3.4",
     "vitest": "5.0.4",
