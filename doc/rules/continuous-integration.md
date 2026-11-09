@@ -1,6 +1,6 @@
 # Continuous integration standards
 
-Adapted for this repo from the DEFRA [continuous integration standards](https://github.com/DEFRA/software-development-standards/blob/master/docs/standards/continuous_integration.md). Last synced 30 July 2026.
+Adapted for this repo from the DEFRA [continuous integration standards](https://github.com/DEFRA/software-development-standards/blob/master/docs/standards/continuous_integration.md). Last synced 9 November 2026.
 
 ## What CI must check
 
@@ -14,7 +14,7 @@ npm run security-audit && npm run format:check && npm run lint && npm test
 
 ## Branch protection
 
-`main` must be protected with branch protection rules requiring the CI checks and at least one approving review before merge.
+`main` is protected by repository rulesets requiring the `Run Pull Request Checks` status check, two approving reviews, resolved review threads and signed commits (see [git-workflow.md](git-workflow.md)). Renaming the job renames the required check: update the ruleset in the same change, or the PR cannot merge.
 
 ## GitHub Actions
 

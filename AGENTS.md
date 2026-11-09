@@ -8,7 +8,7 @@ The rules below are the always-applicable summary. The full standards, tailored 
 
 - [javascript-nodejs.md](doc/rules/javascript-nodejs.md) — writing any JS; adding dependencies; Hapi/ESM conventions
 - [common-coding.md](doc/rules/common-coding.md) — readability, naming, comments, simplicity; coverage rules
-- [git-workflow.md](doc/rules/git-workflow.md) — branching, commit messages, the full PR process
+- [git-workflow.md](doc/rules/git-workflow.md) — branching, commit messages, the PR template and description, the full PR process
 - [security-logging.md](doc/rules/security-logging.md) — secure coding, GitHub Advanced Security, logging and PII rules
 - [containers.md](doc/rules/containers.md) — Dockerfile and image changes
 - [continuous-integration.md](doc/rules/continuous-integration.md) — workflow changes, action SHA-pinning, Sonar
@@ -68,7 +68,8 @@ Both skills enforce scope discipline: AI-suggested changes must be in spec (the 
 
 - All work happens on a branch — never commit directly to `main`. Main is always shippable.
 - Commit messages: imperative mood, capitalised subject ≤50 characters, no trailing period, blank line, then a body explaining _what and why_ (link the Jira story where one exists).
-- PRs are small and focused on one change, squash-merged, and the branch deleted after merge.
+- PRs are small and focused on one change (about 800 non-generated changed lines at most), described with `.github/PULL_REQUEST_TEMPLATE.md` including its "How to test" section, squash-merged, and the branch deleted after merge.
+- Two human developers review and approve every PR. AI review (the `pr-review` and `pr-preflight` skills) supplements that review and never approves.
 - Releases follow semantic versioning; the version number lives in `package.json`.
 
 ## Docker
