@@ -18,12 +18,12 @@ Goals: focused PRs, simple reviews, a clean commit history, and respect for revi
    ```text
    50 character limited title
 
-   Link to originating story/bug in Jira
+   Jira story key of the originating story or bug, e.g. REGEN-NNN
 
    Description covering why we're making this change, and briefly what the change is.
    ```
 
-   Cover **the actual change you intend to make**, not a repeat of the backlog story — the Jira link provides that context.
+   Cover **the actual change you intend to make**, not a repeat of the backlog story — the Jira story key provides that context.
 
 3. **Push immediately and open the PR** (`git push -u origin <branch>`) so the proposed change is visible from the start. Fill in `.github/PULL_REQUEST_TEMPLATE.md`, which GitHub offers in place of the commit message; the empty commit still carries the why in the history. Assign yourself, open the PR as a draft until it is ready, and complete the "How to test" section before you request review.
 4. **Code, committing frequently.** Interim messages can be informal but keep `WIP` noise to a minimum — they're visible in the PR.
@@ -36,7 +36,7 @@ Goals: focused PRs, simple reviews, a clean commit history, and respect for revi
 
 The description follows `.github/PULL_REQUEST_TEMPLATE.md`:
 
-- **Why**: why the change is needed and briefly what it does, with the Jira link and the spec file where one exists. Not a copy of the story.
+- **Why**: why the change is needed and briefly what it does, with the Jira story key (a repository autolink reference makes it clickable) and the spec file where one exists. Not a copy of the story.
 - **What changed**: one bullet per behaviour change, not per file.
 - **How to test**: everything QA or another developer needs to verify the change without reading the code — the environment (`npm run dev` or the Compose stack), preconditions such as Redis, the DEFRA ID stub and a registered test user, numbered steps as pages or URLs with the expected content, the validation errors and error summary, an accessibility check (keyboard navigation and axe), the Vitest files that cover the change, and what still needs a human. Required for any behaviour, schema or configuration change; `No behaviour change: <reason>` is acceptable for a docs-only or tooling PR.
 - **Checklist**: the gate (`npm run security-audit && npm run format:check && npm run lint && npm test`), tests and coverage, server-side validation and accessibility, no PII or secrets, docs updated, dependencies pinned.
@@ -50,6 +50,6 @@ This is how the repo meets the DEFRA [quality assurance standard](https://github
 3. Capitalise the subject line
 4. Do not end the subject line with a period
 5. Use the imperative mood in the subject line (_Add ability_, not _Added ability_)
-6. Use the body to explain _what and why_, not _how_, and link the Jira story where one exists
+6. Use the body to explain _what and why_, not _how_, and name the Jira story key where one exists
 
-Source: [How to write a Git commit message](https://chris.beams.io/posts/git-commit/).
+Source: [How to write a Git commit message](https://chris.beams.io/posts/git-commit/). The `commit` skill in `.agents/skills/commit` produces this format.
