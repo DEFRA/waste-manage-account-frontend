@@ -69,15 +69,15 @@ Both review skills enforce scope discipline: AI-suggested changes must be in spe
 
 ## Specs
 
-- Specs live in `specs/`, numbered `NNN-slug.md` from the next free number, with the Jira story key in the spec's metadata table. A new spec is written with the `spec-clarify` skill, so it has the standard sections, cited sources, and positive and negative acceptance criteria built on the defaults in [quality-assurance.md](doc/rules/quality-assurance.md).
+- Specs live in `specs/`, numbered `NNN-slug.md` from the next free number, titled `REGEN-NNN: Title`. A new spec is written with the `spec-clarify` skill, so it has the standard sections, cited sources, and positive and negative acceptance criteria built on the defaults in [quality-assurance.md](doc/rules/quality-assurance.md).
 - A spec whose work would exceed the PR size guide in [git-workflow.md](doc/rules/git-workflow.md), or that mixes concerns (a new journey, a configuration change, a refactor), is split with the `spec-breakdown` skill into child specs before development starts, one PR each.
 - A delivered spec (its work merged, for example `specs/001-defra-id-implementation-plan.md`) is a record of what was built and why — never edit it. When new work changes something it decided, record the change in the new spec and name the spec it supersedes.
 
 ## Git workflow
 
-- All work happens on a branch — never commit directly to `main`. Main is always shippable.
+- All work happens on a branch named `REGEN-NNN-short-slug` (Dependabot branches are exempt) — never commit directly to `main`. Main is always shippable.
 - Commit messages: imperative mood, capitalised subject ≤50 characters, no trailing period, blank line, then a body explaining _what and why_ (name the Jira story key where one exists).
-- PRs are small and focused on one change (about 800 non-generated changed lines at most), described with `.github/PULL_REQUEST_TEMPLATE.md` including its "How to test" section, squash-merged, and the branch deleted after merge.
+- PRs are small and focused on one change (about 800 non-generated changed lines at most), titled `REGEN-NNN: summary`, described with `.github/PULL_REQUEST_TEMPLATE.md` including its "How to test" section, squash-merged, and the branch deleted after merge.
 - Two human developers review and approve every PR. AI review (the `pr-review` and `pr-preflight` skills) supplements that review and never approves.
 - Releases follow semantic versioning; the version number lives in `package.json`.
 

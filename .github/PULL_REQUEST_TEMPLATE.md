@@ -1,4 +1,4 @@
-<!-- Title: imperative mood, capitalised, 50 characters, no trailing period. See doc/rules/git-workflow.md. -->
+<!-- Title: REGEN-NNN: Short summary (imperative, capitalised, 50 characters including the key, no trailing period). See doc/rules/git-workflow.md. -->
 
 ## Why
 

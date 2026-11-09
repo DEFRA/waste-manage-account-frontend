@@ -70,7 +70,7 @@ otherwise work through them in order.
    blocking PR hygiene finding that needs a manual split — do not try to fix
    it.
 2. **Establish the spec.** Read the PR description and linked Jira story, and
-   list the acceptance criteria for step 5. No Jira story key is itself a finding
+   list the acceptance criteria for step 5. A title without the `REGEN-NNN: ` prefix or a body without the Jira story key is itself a finding
    (`doc/rules/git-workflow.md` requires one).
 3. **Tiny-PR shortcut.** Under ~30 changed lines across at most 2 files:
    review directly, naming the applicable lens(es), and skip the acceptance

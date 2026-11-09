@@ -304,9 +304,9 @@ overridden per environment with the corresponding environment variables.
 
 ## Branching and contributing
 
-Work follows GitHub flow: every change is made on a short-lived branch with a descriptive name
-(for example `add-contact-email-page`), opened as a pull request with an imperative title of 50
-characters or fewer, approved by two reviewers (the repository ruleset enforces this) and
+Work follows GitHub flow: every change is made on a short-lived branch named after its Jira story
+(`REGEN-NNN-short-slug`), opened as a pull request titled `REGEN-NNN: summary` (imperative, 50
+characters or fewer including the key), approved by two reviewers (the repository ruleset enforces this) and
 squash-merged into `main`, which is always shippable. The pull request template
 ([.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md)) asks for a "How to test"
 section so QA or another developer can verify the change without reading the code.

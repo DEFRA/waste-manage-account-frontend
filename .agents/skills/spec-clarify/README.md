@@ -31,7 +31,7 @@ title, version and date.
    story touches, then asks about the problem, who benefits, scope, acceptance criteria, risks,
    priority and size. Answer one topic at a time; say "don't know" where you don't and it becomes
    an Open Question.
-2. It writes `specs/NNN-slug.md` with the standard sections: metadata table (with the Jira story key),
+2. It writes `specs/NNN-slug.md` with the standard sections: metadata table,
    Problem/Opportunity, Proposed Solution, Acceptance Criteria, Out of Scope, Decisions, Open
    Questions, Dependencies, Risks, Notes. The acceptance criteria start from the GOV.UK defaults
    in `doc/rules/quality-assurance.md` (prototype match, Design System components, WCAG 2.2 AA,

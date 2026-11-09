@@ -30,11 +30,14 @@ Rules for the message:
 4. Do not end the subject with a period.
 5. Use the imperative mood (_Add ability_, not _Added ability_).
 6. Use the body to explain _what and why_, not _how_. Name the Jira story key on its own line
-   when one exists — a repository autolink reference makes it clickable. Branches here carry
-   descriptive names, not keys, so take the key from the PR description or the spec; if none is
-   to hand, ask rather than invent one, and omit the line for work with no story (dependency
-   bumps, tooling).
+   when one exists — a repository autolink reference makes it clickable. Take the key from the
+   branch name (`REGEN-150-change-contact-email` gives `REGEN-150`); on a branch with no key,
+   ask rather than invent one, and omit the line for work with no story (dependency bumps,
+   tooling).
 7. Wrap the body at 72 characters.
+8. A single-commit PR is squash-merged under its commit subject, so when the branch will have
+   only this commit, prefix the subject with the story key: `REGEN-150: Validate the contact
+email field`.
 
 ## Procedure
 

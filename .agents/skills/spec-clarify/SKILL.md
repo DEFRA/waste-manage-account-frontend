@@ -20,10 +20,9 @@ format below.
 had no settled section structure. This skill therefore uses the same sections as
 waste-organisations (metadata table, Problem/Opportunity, Proposed Solution with a Work
 breakdown, Acceptance Criteria, Out of Scope, Decisions, Open Questions, Dependencies, Risks,
-Notes) and keeps this repo's conventions: three-digit numbering (`specs/NNN-slug.md`), a slug
-without the Jira key, and the story key in the metadata table rather than prefixed to the
-title — the same way `doc/rules/git-workflow.md` and `.github/PULL_REQUEST_TEMPLATE.md` name the
-story key instead of prefixing it (a repository autolink reference makes keys clickable).
+Notes) and keeps this repo's three-digit numbering (`specs/NNN-slug.md`). The title carries the
+story key (`REGEN-NNN: Title`), as PR titles and branch names do (`doc/rules/git-workflow.md`); a
+repository autolink reference makes keys clickable.
 
 You are running an idea refinement workshop with the developer. The output is a spec that a
 reviewer can approve and that a developer or an agent can implement without asking the author
@@ -122,11 +121,10 @@ digits, zero-padded, as `001` is) and the slug comes from the story title. Use t
 with the section headings exactly as written:
 
 ```markdown
-# Title
+# REGEN-NNN: Title
 
 |          |                                                                                                             |
 | -------- | ----------------------------------------------------------------------------------------------------------- |
-| Story    | REGEN-NNN                                                                                                   |
 | Type     | Feature / Bug / Improvement / Spike / Task, with one sentence on what changes and what does not             |
 | Priority | P0 to P4 with the rationale                                                                                 |
 | Parent   | Parent story or epic, if any                                                                                |

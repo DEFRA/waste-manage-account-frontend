@@ -12,7 +12,7 @@ Adapted for this repo from the DEFRA [version control standards](https://github.
 
 Goals: focused PRs, simple reviews, a clean commit history, and respect for reviewers' time.
 
-1. **Always on a branch.** However small the change: `git checkout -b <short-descriptive-branch-name>`.
+1. **Always on a branch.** However small the change: `git checkout -b REGEN-NNN-short-slug`, for example `REGEN-150-change-contact-email`. The DEFRA process uses a plain descriptive name; this repo prefixes the Jira story key so the PR title and the story can be read from the branch. Dependabot branches are exempt.
 2. **Start with an empty commit** (`git commit --allow-empty`) using this template:
 
    ```text
@@ -25,12 +25,12 @@ Goals: focused PRs, simple reviews, a clean commit history, and respect for revi
 
    Cover **the actual change you intend to make**, not a repeat of the backlog story — the Jira story key provides that context.
 
-3. **Push immediately and open the PR** (`git push -u origin <branch>`) so the proposed change is visible from the start. Fill in `.github/PULL_REQUEST_TEMPLATE.md`, which GitHub offers in place of the commit message; the empty commit still carries the why in the history. Assign yourself, open the PR as a draft until it is ready, and complete the "How to test" section before you request review.
+3. **Push immediately and open the PR** (`git push -u origin REGEN-NNN-short-slug`) so the proposed change is visible from the start. Title it `REGEN-NNN: summary` — imperative, 50 characters at most including the key — and fill in `.github/PULL_REQUEST_TEMPLATE.md`, which GitHub offers in place of the commit message; the empty commit still carries the why in the history. Assign yourself, open the PR as a draft until it is ready, and complete the "How to test" section before you request review.
 4. **Code, committing frequently.** Interim messages can be informal but keep `WIP` noise to a minimum — they're visible in the PR.
 5. **Keep your branch up to date** with `git rebase origin/main` (preferred over merge, to keep the PR history clean). Never rebase or force-push a branch someone else is working on.
 6. **Keep the PR small.** One story slice per PR — a PR that mixes a new page, a configuration change and a refactor is three PRs. Size guide: at most about 800 non-generated changed lines (generated means lock files such as `package-lock.json` and Vitest snapshots); above that, split before asking for review. The `pr-review` and `pr-preflight` skills flag a PR over the guide with a suggested split point. The figure was proposed in November 2026 and the team can revise it here.
 7. **Get it reviewed.** Two other developers must review and approve before merge — GitHub enforces two approving reviews on `main`. AI review (the `pr-review` and `pr-preflight` skills) prepares for the human review and never replaces or approves it.
-8. **Squash and merge**, rewording the combined text into a single clean commit message, then **delete the branch**.
+8. **Squash and merge**, rewording the combined text into a single clean commit message, then **delete the branch**. GitHub names the squash commit after the PR title when the PR has several commits, but after the commit subject when it has only one: give a single commit the same `REGEN-NNN: ` prefix.
 
 ## Pull request description
 

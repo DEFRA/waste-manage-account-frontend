@@ -74,7 +74,7 @@ Choose one and say why:
    size. Show the dependency order. Confirm or adjust with the author.
 5. **Write the child specs**, one file each, `specs/NNN-<slice-slug>.md`, numbered consecutively
    from the next free number, in the repo's spec structure (same headings as `spec-clarify`
-   produces). In the metadata table, `Story` links the parent's Jira story, `Type` starts
+   produces). The title carries the parent's story key (`REGEN-NNN: <slice title>`); in the metadata table, `Type` starts
    "Part N of M of REGEN-NNN" and `Parent` names the parent spec file. Acceptance Criteria are
    the parent's criteria for that slice, reworded only where the slice boundary requires. Out of
    Scope names the sibling slices. Decisions repeat nothing: they reference the parent's
