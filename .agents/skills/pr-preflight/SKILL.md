@@ -3,7 +3,8 @@ name: pr-preflight
 description: >
   Pre-flight check of your own GitHub pull request in this repository before requesting human
   review. Reviews the PR with the same per-PR-scoped lenses as pr-review (security, quality,
-  redundancy, testing, accessibility, architecture, dependencies, PR hygiene) against the linked
+  redundancy, testing, accessibility, architecture, dependencies, PR hygiene, spec) against the
+  linked
   Jira story and the repo's standards (AGENTS.md and doc/rules/), maps the acceptance criteria to
   evidence, states what it reviewed in full, then fixes the confirmed, mechanical, in-spec
   blocking findings (verified with the repo's full gate, committed as a new commit, plain-pushed
@@ -69,7 +70,7 @@ otherwise work through them in order.
    blocking PR hygiene finding that needs a manual split — do not try to fix
    it.
 2. **Establish the spec.** Read the PR description and linked Jira story, and
-   list the acceptance criteria for step 5. No Jira link is itself a finding
+   list the acceptance criteria for step 5. No Jira story key is itself a finding
    (`doc/rules/git-workflow.md` requires one).
 3. **Tiny-PR shortcut.** Under ~30 changed lines across at most 2 files:
    review directly, naming the applicable lens(es), and skip the acceptance
@@ -145,7 +146,7 @@ explains what is wrong and why it needs a decision.
 ```
 ### PR <number>: <title>  (preflight)
 <base> → <head>  •  <files> files (+<adds>/−<dels>, <n> generated)  •  CI: <passing/failing>
-Spec: <Jira ref (and spec file, if any) or "no Jira link — add one before requesting review">
+Spec: <Jira ref (and spec file, if any) or "no Jira key — add one before requesting review">
 Size: <within budget | over budget: <n> non-generated lines — split at <boundary> before requesting review>
 Reviewed: <n> of <m> files in full  (skimmed: <files — reason>; not reviewed: <lock files, generated assets — reason>)
 Lenses: <applied>  (scoped out: <lens — reason>)

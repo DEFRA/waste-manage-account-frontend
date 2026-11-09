@@ -3,7 +3,8 @@ name: pr-review
 description: >
   Review a colleague's GitHub pull request for this repository against the linked Jira story and
   the repo's standards (AGENTS.md and doc/rules/). Works through per-PR-scoped review lenses
-  (security, quality, redundancy, testing, accessibility, architecture, dependencies, PR hygiene),
+  (security, quality, redundancy, testing, accessibility, architecture, dependencies, PR hygiene,
+  spec),
   maps the story's acceptance criteria to evidence in the PR, states which files it reviewed in
   full, tags each blocking finding as confirmed or from reading, and classifies every finding as
   in-spec blocking, in-spec non-blocking, or valuable-but-out-of-scope (the last becomes a
@@ -68,7 +69,7 @@ otherwise work through them in order — the result must be the same either way.
 2. **Establish the spec.** Read the PR description and the linked Jira story,
    and list the acceptance criteria from the story (or as restated in the PR
    description) for step 6. Together with the repo standards these define what
-   "in spec" means for this PR. If there is no Jira link, flag it:
+   "in spec" means for this PR. If there is no Jira story key, flag it:
    `doc/rules/git-workflow.md` requires one. If you cannot read the story
    itself, judge against the acceptance criteria as restated in the PR
    description and say that is what you judged against.
@@ -81,16 +82,17 @@ otherwise work through them in order — the result must be the same either way.
 5. **Apply each lens.** For each applicable lens, read the referenced rules
    file and check the diff against it:
 
-   | Lens          | Check for                                                                                                                                     | Rules to apply                                                         |
-   | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-   | security      | Injection, auth, secrets, PII in logs, `console.log`, unpinned Actions                                                                        | `doc/rules/security-logging.md`, `doc/rules/continuous-integration.md` |
-   | quality       | Correctness, error handling, naming, readability, comments                                                                                    | `doc/rules/common-coding.md`, `doc/rules/javascript-nodejs.md`         |
-   | redundancy    | Dead code, duplication, speculative abstraction (rule of three), commented-out code                                                           | `doc/rules/common-coding.md`                                           |
-   | testing       | Missing/weak tests, negative cases, coverage ≥90% and never decreasing                                                                        | `doc/rules/quality-assurance.md`                                       |
-   | accessibility | WCAG 2.2 AA, progressive enhancement, GOV.UK error patterns, govuk-frontend misuse                                                            | `doc/rules/quality-assurance.md`                                       |
-   | architecture  | Hapi plugin/route patterns, no TypeScript, no front-end frameworks, no in-process session state, config conventions                           | `AGENTS.md`, `doc/rules/javascript-nodejs.md`                          |
-   | dependencies  | Exact version pins (no `^`/`~`), npm only, dep/devDep placement, vetting rationale for new packages                                           | `AGENTS.md` (Dependencies), `doc/rules/javascript-nodejs.md`           |
-   | PR hygiene    | Commit message rules, description matches the diff, Jira link, "How to test" present and runnable by QA, PR within the size guide and focused | `doc/rules/git-workflow.md`                                            |
+   | Lens          | Check for                                                                                                                                                                                                                                                                                                                                                               | Rules to apply                                                                                        |
+   | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+   | security      | Injection, auth, secrets, PII in logs, `console.log`, unpinned Actions                                                                                                                                                                                                                                                                                                  | `doc/rules/security-logging.md`, `doc/rules/continuous-integration.md`                                |
+   | quality       | Correctness, error handling, naming, readability, comments                                                                                                                                                                                                                                                                                                              | `doc/rules/common-coding.md`, `doc/rules/javascript-nodejs.md`                                        |
+   | redundancy    | Dead code, duplication, speculative abstraction (rule of three), commented-out code                                                                                                                                                                                                                                                                                     | `doc/rules/common-coding.md`                                                                          |
+   | testing       | Missing/weak tests, negative cases, coverage ≥90% and never decreasing                                                                                                                                                                                                                                                                                                  | `doc/rules/quality-assurance.md`                                                                      |
+   | accessibility | WCAG 2.2 AA, progressive enhancement, GOV.UK error patterns, govuk-frontend misuse                                                                                                                                                                                                                                                                                      | `doc/rules/quality-assurance.md`                                                                      |
+   | architecture  | Hapi plugin/route patterns, no TypeScript, no front-end frameworks, no in-process session state, config conventions                                                                                                                                                                                                                                                     | `AGENTS.md`, `doc/rules/javascript-nodejs.md`                                                         |
+   | dependencies  | Exact version pins (no `^`/`~`), npm only, dep/devDep placement, vetting rationale for new packages                                                                                                                                                                                                                                                                     | `AGENTS.md` (Dependencies), `doc/rules/javascript-nodejs.md`                                          |
+   | PR hygiene    | Commit message rules, description matches the diff, Jira story key, "How to test" present and runnable by QA, PR within the size guide and focused                                                                                                                                                                                                                      | `doc/rules/git-workflow.md`                                                                           |
+   | spec          | For changes under `specs/`: the standard sections present (metadata table, Problem/Opportunity, Proposed Solution, Acceptance Criteria, Out of Scope, Decisions, Open Questions, Dependencies, Risks), acceptance criteria testable with negative cases, sources cited, delivered specs untouched, a Work breakdown or child specs when the work exceeds the size guide | `AGENTS.md` (Specs), `.agents/skills/spec-clarify/SKILL.md`, `.agents/skills/spec-breakdown/SKILL.md` |
 
    Only apply a rule to lines the PR touches — pre-existing violations nearby
    are out-of-scope findings (step 7), not change requests.
@@ -121,7 +123,7 @@ otherwise work through them in order — the result must be the same either way.
 8. **Check the description against the diff** as a final pass: claims that
    don't match the code are blocking. A "How to test" section that is missing,
    stale, or could not be followed without reading the code is blocking on a
-   behaviour, schema or configuration change; a missing Jira link or test note
+   behaviour, schema or configuration change; a missing Jira story key or test note
    is non-blocking.
 9. **De-duplicate** before reporting: two lenses flagging the same defect on
    the same lines collapse into one finding tagged with both lenses.
@@ -138,7 +140,7 @@ references. No praise section, no extra prose.
 ```
 ### PR <number>: <title>
 Author: <login>  •  <base> → <head>  •  <files> files (+<adds>/−<dels>, <n> generated)  •  CI: <passing/failing>
-Spec: <Jira ref (and spec file, if any) or "no Jira link — flagged">
+Spec: <Jira ref (and spec file, if any) or "no Jira key — flagged">
 Size: <within budget | over budget: <n> non-generated lines — suggest splitting at <boundary>>
 Reviewed: <n> of <m> files in full  (skimmed: <files — reason>; not reviewed: <lock files, generated assets — reason>)
 Lenses: <applied>  (scoped out: <lens — reason>)

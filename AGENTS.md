@@ -18,10 +18,13 @@ The rules below are the always-applicable summary. The full standards, tailored 
 
 Agent-invocable procedures live in `.agents/skills/` in the open Agent Skills format (`SKILL.md`). Codex and GitHub Copilot read that directory natively; Claude Code reads the same skills through the `.claude/skills/` symlinks. When a task matches one of these skills, follow the skill rather than improvising:
 
+- `spec-clarify` — turn a Jira story, bug or idea into a spec in `specs/`, in the repo's format, by asking the author questions; the first step of every story.
+- `spec-breakdown` — split a spec that needs more than one PR into child specs, one per slice, with dependencies and order.
+- `commit` — stage and commit finished work as atomic commits with DEFRA-style messages: subject, Jira story key, body.
 - `pr-review` — review a colleague's PR against the linked Jira story and these standards. Findings are reported for a human to act on; the AI never approves, requests changes, or comments.
 - `pr-preflight` — pre-flight check of your own PR before requesting human review; may fix mechanical, in-spec blocking findings (new commit, plain push, full gate first).
 
-Both skills enforce scope discipline: AI-suggested changes must be in spec (the linked story's acceptance criteria plus these standards on the lines the PR touches). Valuable out-of-scope findings are raised as suggested new Jira stories, never as changes or change requests on the PR.
+Both review skills enforce scope discipline: AI-suggested changes must be in spec (the linked story's acceptance criteria plus these standards on the lines the PR touches). Valuable out-of-scope findings are raised as suggested new Jira stories, never as changes or change requests on the PR.
 
 ## Language and frameworks
 
@@ -64,10 +67,16 @@ Both skills enforce scope discipline: AI-suggested changes must be in spec (the 
 - Never commit credentials, connection strings, or `.env` values. If a secret is ever exposed in git history, treat it as compromised and follow Defra's credential exposure process.
 - In GitHub Actions workflows, pin third-party actions to a full commit SHA (with the version as a trailing comment), never a tag or branch.
 
+## Specs
+
+- Specs live in `specs/`, numbered `NNN-slug.md` from the next free number, with the Jira story key in the spec's metadata table. A new spec is written with the `spec-clarify` skill, so it has the standard sections, cited sources, and positive and negative acceptance criteria built on the defaults in [quality-assurance.md](doc/rules/quality-assurance.md).
+- A spec whose work would exceed the PR size guide in [git-workflow.md](doc/rules/git-workflow.md), or that mixes concerns (a new journey, a configuration change, a refactor), is split with the `spec-breakdown` skill into child specs before development starts, one PR each.
+- A delivered spec (its work merged, for example `specs/001-defra-id-implementation-plan.md`) is a record of what was built and why — never edit it. When new work changes something it decided, record the change in the new spec and name the spec it supersedes.
+
 ## Git workflow
 
 - All work happens on a branch — never commit directly to `main`. Main is always shippable.
-- Commit messages: imperative mood, capitalised subject ≤50 characters, no trailing period, blank line, then a body explaining _what and why_ (link the Jira story where one exists).
+- Commit messages: imperative mood, capitalised subject ≤50 characters, no trailing period, blank line, then a body explaining _what and why_ (name the Jira story key where one exists).
 - PRs are small and focused on one change (about 800 non-generated changed lines at most), described with `.github/PULL_REQUEST_TEMPLATE.md` including its "How to test" section, squash-merged, and the branch deleted after merge.
 - Two human developers review and approve every PR. AI review (the `pr-review` and `pr-preflight` skills) supplements that review and never approves.
 - Releases follow semantic versioning; the version number lives in `package.json`.
