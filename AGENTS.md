@@ -75,9 +75,9 @@ Both review skills enforce scope discipline: AI-suggested changes must be in spe
 
 ## Git workflow
 
-- All work happens on a branch named `REGEN-NNN-short-slug` (Dependabot branches are exempt) — never commit directly to `main`. Main is always shippable.
+- All work happens on a branch named `REGEN-NNN-short-slug` (Dependabot branches and work with no Jira story are exempt) — never commit directly to `main`. Main is always shippable.
 - Branch commits follow Conventional Commits (`type(scope): subject`, imperative, ≤50 characters, optional body of up to three short bullets), made with the `commit` skill, with no Jira key and no tool signatures or co-author trailers. They never reach `main`.
-- PRs are small and focused on one change (about 800 non-generated changed lines at most), titled `REGEN-NNN: summary`, described with `.github/PULL_REQUEST_TEMPLATE.md` including its "How to test" section, squash-merged with the PR title and description as the commit message, and the branch deleted after merge.
+- PRs are small and focused on one change (about 800 non-generated changed lines at most), titled `REGEN-NNN: summary` (no prefix when the work has no Jira story), described with `.github/PULL_REQUEST_TEMPLATE.md` including its "How to test" section, squash-merged with the PR title and description as the commit message, and the branch deleted after merge.
 - Two human developers review and approve every PR. AI review (the `pr-review` and `pr-preflight` skills) supplements that review and never approves.
 - Releases follow semantic versioning: the CDP build action tags and versions each merge to `main`, and the release version is not kept in `package.json`.
 

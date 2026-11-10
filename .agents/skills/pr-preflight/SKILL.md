@@ -70,8 +70,10 @@ otherwise work through them in order.
    blocking PR hygiene finding that needs a manual split — do not try to fix
    it.
 2. **Establish the spec.** Read the PR description and linked Jira story, and
-   list the acceptance criteria for step 5. A title without the `REGEN-NNN: ` prefix or a body without the Jira story key is itself a finding
-   (`doc/rules/git-workflow.md` requires one).
+   list the acceptance criteria for step 5. When the work has a Jira story, a
+   title without the `REGEN-NNN: ` prefix or a body without the story key is
+   itself a finding (`doc/rules/git-workflow.md`); work with no story needs
+   neither and says `Jira: none` with the reason.
 3. **Tiny-PR shortcut.** Under ~30 changed lines across at most 2 files:
    review directly, naming the applicable lens(es), and skip the acceptance
    criteria table.
@@ -145,7 +147,7 @@ explains what is wrong and why it needs a decision.
 ```
 ### PR <number>: <title>  (preflight)
 <base> → <head>  •  <files> files (+<adds>/−<dels>, <n> generated)  •  CI: <passing/failing>
-Spec: <Jira ref (and spec file, if any) or "no Jira key — add one before requesting review">
+Spec: <Jira ref (and spec file, if any) | "no Jira story — <reason>" | "no Jira key — add one before requesting review">
 Size: <within budget | over budget: <n> non-generated lines — split at <boundary> before requesting review>
 Reviewed: <n> of <m> files in full  (skimmed: <files — reason>; not reviewed: <lock files, generated assets — reason>)
 Lenses: <applied>  (scoped out: <lens — reason>)

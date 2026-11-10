@@ -1,10 +1,10 @@
-<!-- Title: REGEN-NNN: Short summary (imperative, capitalised, 50 characters including the key, no trailing period). See doc/rules/git-workflow.md. -->
+<!-- Title: REGEN-NNN: Short summary (imperative, capitalised, 50 characters including the key, no trailing period). No prefix when the work has no Jira story. See doc/rules/git-workflow.md. -->
 
 ## Why
 
 <!-- Why this change is needed and briefly what it does. Not a copy of the story. -->
 
-Jira: REGEN-NNN
+Jira: REGEN-NNN <!-- or "none" with the reason when the work has no Jira story -->
 Spec: specs/NNN-slug.md <!-- or "none" -->
 
 ## What changed

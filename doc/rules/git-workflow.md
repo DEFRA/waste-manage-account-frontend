@@ -12,7 +12,7 @@ Adapted for this repo from the DEFRA [version control standards](https://github.
 
 Goals: focused PRs, simple reviews, a clean commit history, and respect for reviewers' time.
 
-1. **Always on a branch.** However small the change: `git checkout -b REGEN-NNN-short-slug`, for example `REGEN-150-change-contact-email`. The DEFRA process uses a plain descriptive name; this repo prefixes the Jira story key so the PR title and the story can be read from the branch. Dependabot branches are exempt.
+1. **Always on a branch.** However small the change: `git checkout -b REGEN-NNN-short-slug`, for example `REGEN-150-change-contact-email`. The DEFRA process uses a plain descriptive name; this repo prefixes the Jira story key so the PR title and the story can be read from the branch. Dependabot branches are exempt. Work that is not associated with a Jira story takes no key: the branch has a short descriptive name and the PR title is the summary alone. Never invent a placeholder key.
 2. **Start with an empty commit** (`git commit --allow-empty`) using this template:
 
    ```text
@@ -25,7 +25,7 @@ Goals: focused PRs, simple reviews, a clean commit history, and respect for revi
 
    Cover **the actual change you intend to make**, not a repeat of the backlog story — the Jira story key provides that context.
 
-3. **Push immediately and open the PR** (`git push -u origin REGEN-NNN-short-slug`) so the proposed change is visible from the start. Title it `REGEN-NNN: summary` — imperative, 50 characters at most including the key — and fill in `.github/PULL_REQUEST_TEMPLATE.md`, which GitHub offers in place of the commit message; the empty commit still carries the why in the history. Assign yourself, open the PR as a draft until it is ready, and complete the "How to test" section before you request review.
+3. **Push immediately and open the PR** (`git push -u origin REGEN-NNN-short-slug`) so the proposed change is visible from the start. Title it `REGEN-NNN: summary` — imperative, 50 characters at most including the key — and fill in `.github/PULL_REQUEST_TEMPLATE.md`, which GitHub offers in place of the commit message; the empty commit still carries the why in the history. Take the story key from the branch name; if the branch has none, ask rather than guess. Dependabot PRs and work with no Jira story take no prefix. Assign yourself, open the PR as a draft until it is ready, and complete the "How to test" section before you request review.
 4. **Code, committing frequently** with the `commit` skill: Conventional Commits subjects and short bulleted bodies (see "Commit messages" below). Keep `WIP` noise to a minimum — the messages are visible in the PR.
 5. **Keep your branch up to date** with `git rebase origin/main` (preferred over merge, to keep the PR history clean). Never rebase or force-push a branch someone else is working on.
 6. **Keep the PR small.** One story slice per PR — a PR that mixes a new page, a configuration change and a refactor is three PRs. Size guide: at most about 800 non-generated changed lines (generated means lock files such as `package-lock.json` and Vitest snapshots); above that, split before asking for review. The `pr-review` and `pr-preflight` skills flag a PR over the guide with a suggested split point. The figure was proposed in November 2026 and the team can revise it here.
@@ -36,7 +36,7 @@ Goals: focused PRs, simple reviews, a clean commit history, and respect for revi
 
 The description follows `.github/PULL_REQUEST_TEMPLATE.md`:
 
-- **Why**: why the change is needed and briefly what it does, with the Jira story key (a repository autolink reference makes it clickable) and the spec file where one exists. Not a copy of the story.
+- **Why**: why the change is needed and briefly what it does, with the Jira story key (a repository autolink reference makes it clickable), or `Jira: none` with the reason when the work has no story, and the spec file where one exists. Not a copy of the story.
 - **What changed**: one bullet per behaviour change, not per file.
 - **How to test**: everything QA or another developer needs to verify the change without reading the code — the environment (`npm run dev` or the Compose stack), preconditions such as Redis, the DEFRA ID stub and a registered test user, numbered steps as pages or URLs with the expected content, the validation errors and error summary, an accessibility check (keyboard navigation and axe), the Vitest files that cover the change, and what still needs a human. Required for any behaviour, schema or configuration change; `No behaviour change: <reason>` is acceptable for a docs-only or tooling PR.
 - **Checklist**: the gate (`npm run security-audit && npm run format:check && npm run lint && npm test`), tests and coverage, server-side validation and accessibility, no PII or secrets, docs updated, dependencies pinned.

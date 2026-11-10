@@ -69,10 +69,12 @@ otherwise work through them in order — the result must be the same either way.
 2. **Establish the spec.** Read the PR description and the linked Jira story,
    and list the acceptance criteria from the story (or as restated in the PR
    description) for step 6. Together with the repo standards these define what
-   "in spec" means for this PR. A title without the `REGEN-NNN: ` prefix or a body without the Jira story key is itself a finding:
-   `doc/rules/git-workflow.md` requires one. If you cannot read the story
-   itself, judge against the acceptance criteria as restated in the PR
-   description and say that is what you judged against.
+   "in spec" means for this PR. When the work has a Jira story, a title without
+   the `REGEN-NNN: ` prefix or a body without the story key is itself a finding
+   (`doc/rules/git-workflow.md`); work with no story needs neither and says
+   `Jira: none` with the reason. If you cannot read the story itself, judge
+   against the acceptance criteria as restated in the PR description and say
+   that is what you judged against.
 3. **Tiny-PR shortcut.** If the diff is under ~30 changed lines across at most
    2 files, skip the lens machinery and the acceptance criteria table: review
    it directly and name which lens(es) the change falls under.
@@ -91,7 +93,7 @@ otherwise work through them in order — the result must be the same either way.
    | accessibility | WCAG 2.2 AA, progressive enhancement, GOV.UK error patterns, govuk-frontend misuse                                                                                                                                                                                                                                                                                      | `doc/rules/quality-assurance.md`                                                                      |
    | architecture  | Hapi plugin/route patterns, no TypeScript, no front-end frameworks, no in-process session state, config conventions                                                                                                                                                                                                                                                     | `AGENTS.md`, `doc/rules/javascript-nodejs.md`                                                         |
    | dependencies  | Exact version pins (no `^`/`~`), npm only, dep/devDep placement, vetting rationale for new packages                                                                                                                                                                                                                                                                     | `AGENTS.md` (Dependencies), `doc/rules/javascript-nodejs.md`                                          |
-   | PR hygiene    | Commit message rules, `REGEN-NNN: ` title, Jira story key, description matches the diff, "How to test" present and runnable by QA, PR within the size guide and focused                                                                                                                                                                                                 | `doc/rules/git-workflow.md`                                                                           |
+   | PR hygiene    | Commit message rules, `REGEN-NNN: ` title and Jira story key when the work has a story, description matches the diff, "How to test" present and runnable by QA, PR within the size guide and focused                                                                                                                                                                    | `doc/rules/git-workflow.md`                                                                           |
    | spec          | For changes under `specs/`: the standard sections present (metadata table, Problem/Opportunity, Proposed Solution, Acceptance Criteria, Out of Scope, Decisions, Open Questions, Dependencies, Risks), acceptance criteria testable with negative cases, sources cited, delivered specs untouched, a Work breakdown or child specs when the work exceeds the size guide | `AGENTS.md` (Specs), `.agents/skills/spec-clarify/SKILL.md`, `.agents/skills/spec-breakdown/SKILL.md` |
 
    Only apply a rule to lines the PR touches — pre-existing violations nearby
@@ -140,7 +142,7 @@ references. No praise section, no extra prose.
 ```
 ### PR <number>: <title>
 Author: <login>  •  <base> → <head>  •  <files> files (+<adds>/−<dels>, <n> generated)  •  CI: <passing/failing>
-Spec: <Jira ref (and spec file, if any) or "no Jira key — flagged">
+Spec: <Jira ref (and spec file, if any) | "no Jira story — <reason>" | "no Jira key — flagged">
 Size: <within budget | over budget: <n> non-generated lines — suggest splitting at <boundary>>
 Reviewed: <n> of <m> files in full  (skimmed: <files — reason>; not reviewed: <lock files, generated assets — reason>)
 Lenses: <applied>  (scoped out: <lens — reason>)
