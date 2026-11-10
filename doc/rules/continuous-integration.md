@@ -4,7 +4,7 @@ Adapted for this repo from the DEFRA [continuous integration standards](https://
 
 ## What CI must check
 
-Every branch build verifies: the frontend builds, tests pass, code style checks pass (Prettier, ESLint/neostandard, Stylelint), code quality checks pass (SonarQube Cloud), and security checks pass (npm audit, dependency review).
+Every branch build verifies: the frontend builds, tests pass, code style checks pass (Prettier, ESLint/neostandard, Stylelint), code quality checks pass (SonarQube Cloud), and security checks pass (npm audit).
 
 In this repo that is `.github/workflows/check-pull-request.yml`, mirroring the local pre-commit gate:
 
@@ -38,12 +38,12 @@ To update an action, test the new version, then update the SHA. Find the SHA by 
 
 ## Security in CI
 
-- **Dependabot** enabled per repository with grouped updates.
-- **Dependency review action** in the PR workflow to block newly-introduced vulnerable packages.
+- **Dependabot** raises grouped update PRs; `.github/dependabot.yml` is the source of truth for the ecosystems, groups and schedule.
+- **npm audit** — `npm run security-audit` (`npm audit --audit-level=critical`) runs in the pre-commit gate and in `check-pull-request.yml`, and fails the check when an installed package has a critical advisory.
 - **GitHub Security tab** reviewed regularly; open alerts must be resolved. This includes vulnerabilities in GitHub Actions themselves.
 
 ## Maintainability and test coverage
 
-- SonarQube Cloud (Defra organisation) must run in CI — enable the commented-out `SonarSource/sonarqube-scan-action` steps in the workflows once the `SONAR_TOKEN` secret is configured (see `sonar-project.properties`).
-- CI must report unit test coverage to SonarQube Cloud (`./coverage/lcov.info` from Vitest is already wired up in `sonar-project.properties`).
+- SonarQube Cloud (Defra organisation) runs in CI through the `SonarSource/sonarqube-scan-action` step in each workflow, configured by `sonar-project.properties`.
+- CI reports unit test coverage to SonarQube Cloud from the `./coverage/lcov.info` file Vitest writes (`sonar-project.properties`).
 - The Defra standard quality gate must be met and maintained.

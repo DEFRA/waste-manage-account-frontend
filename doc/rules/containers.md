@@ -10,9 +10,9 @@ Adapted for this repo from the DEFRA [container standards](https://github.com/DE
 - **Containers never run as root.** Containers are not trust boundaries. The Dockerfile runs as the `node` user; if a step needs `USER root` (e.g. installing an OS package), switch back to `USER node` immediately after.
 - Production images are **immutable**: once built they do not change, but can be configured. All per-environment behaviour comes from environment variables (managed through convict in `src/config`), never values baked into the image.
 - Images are **self-contained** and carry all runtime dependencies — no reliance on the host for application dependencies. Use `npm ci --omit=dev` for the production stage.
-- Images are tagged using semantic versioning, kept in sync with the application version in `package.json`.
+- Images are tagged using semantic versioning by the CDP build action (see "Version control standards" in [git-workflow.md](git-workflow.md)).
 - Public images are signed so consumers can verify their source.
 
 ## In this repo
 
-The multi-stage `Dockerfile` follows the CDP pattern: a `development` stage from the development parent image, a `production_build` stage, and a minimal `production` stage from the production parent image. Preserve that structure when changing the build.
+The `Dockerfile` is the source of truth for the build. It is a multi-stage build in the CDP pattern, with the development and production stages built from the matching Defra parent images; preserve that structure when changing it.

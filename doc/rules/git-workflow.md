@@ -6,7 +6,7 @@ Adapted for this repo from the DEFRA [version control standards](https://github.
 
 - All code is held in the Defra GitHub organisation.
 - `main` is protected by repository rulesets: two approving reviews (GitHub states this when a PR is opened; a new push dismisses stale approvals and the latest push needs an approval from someone other than its author), all review threads resolved, the `Run Pull Request Checks` status check up to date with `main`, signed commits, and no force pushes or deletion. No direct commits to `main`, ever.
-- All releases are tagged before deployment, use [semantic versioning](https://semver.org/), and include a commit updating the version number in `package.json`.
+- Releases are tagged and versioned by the CDP build action on every merge to `main` (`.github/workflows/publish.yml`), using [semantic versioning](https://semver.org/). **Deviation:** the release version lives in the CDP tag and the `SERVICE_VERSION` environment variable, not in `package.json`, because CDP owns release versioning for the services it hosts.
 
 ## Pull request process
 
