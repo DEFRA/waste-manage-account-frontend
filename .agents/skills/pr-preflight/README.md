@@ -43,7 +43,7 @@ compares the PR author with `gh api user` and stops if they differ.
 4. It fixes a blocking finding only when the finding is confirmed, the fix is mechanical, in spec
    and needs no judgement call you have not already made. Fixes are verified with the full gate
    (`npm run security-audit && npm run format:check && npm run lint && npm test`, coverage not
-   below its previous figure), committed as one new commit in the DEFRA message style and
+   below its previous figure), committed as one new commit with the `commit` skill and
    plain-pushed to the PR's branch. Anything else is reported as needing your decision.
 
 ## What you get

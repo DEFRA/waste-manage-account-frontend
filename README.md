@@ -319,7 +319,7 @@ procedures live in [.agents/skills](.agents/skills/) and work in Claude Code and
 - [spec-breakdown](.agents/skills/spec-breakdown/README.md): split a large spec into child specs, one pull request each
 - [pr-preflight](.agents/skills/pr-preflight/README.md): check your own pull request before asking for review
 - [pr-review](.agents/skills/pr-review/README.md): review a colleague's pull request against its story and these standards
-- `commit`: commit finished work with a DEFRA-style message (subject, Jira story key, body)
+- `commit`: commit finished work with Conventional Commits messages
 
 ## Licence
 

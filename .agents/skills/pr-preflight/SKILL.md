@@ -136,9 +136,8 @@ explains what is wrong and why it needs a decision.
    — and confirm coverage has not dropped below its previous figure, not just
    above 90% (`doc/rules/quality-assurance.md`). If a fix fails the gate,
    revert that edit and report the finding as unfixed, with what you tried.
-4. Commit as a **new commit** following `doc/rules/git-workflow.md` (≤50-char
-   imperative subject, body explaining what and why — note it was caught in
-   self-review). Plain `git push` to the PR's head branch.
+4. Commit as a **new commit** with the `commit` skill (note in the body that
+   it was caught in self-review). Plain `git push` to the PR's head branch.
 5. Record the new head SHA for the report.
 
 ## Report format

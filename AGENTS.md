@@ -20,7 +20,7 @@ Agent-invocable procedures live in `.agents/skills/` in the open Agent Skills fo
 
 - `spec-clarify` — turn a Jira story, bug or idea into a spec in `specs/`, in the repo's format, by asking the author questions; the first step of every story.
 - `spec-breakdown` — split a spec that needs more than one PR into child specs, one per slice, with dependencies and order.
-- `commit` — stage and commit finished work as atomic commits with DEFRA-style messages: subject, Jira story key, body.
+- `commit` — stage and commit finished work as atomic commits with Conventional Commits messages.
 - `pr-review` — review a colleague's PR against the linked Jira story and these standards. Findings are reported for a human to act on; the AI never approves, requests changes, or comments.
 - `pr-preflight` — pre-flight check of your own PR before requesting human review; may fix mechanical, in-spec blocking findings (new commit, plain push, full gate first).
 
@@ -76,8 +76,8 @@ Both review skills enforce scope discipline: AI-suggested changes must be in spe
 ## Git workflow
 
 - All work happens on a branch named `REGEN-NNN-short-slug` (Dependabot branches are exempt) — never commit directly to `main`. Main is always shippable.
-- Commit messages: imperative mood, capitalised subject ≤50 characters, no trailing period, blank line, then a body explaining _what and why_ (name the Jira story key where one exists).
-- PRs are small and focused on one change (about 800 non-generated changed lines at most), titled `REGEN-NNN: summary`, described with `.github/PULL_REQUEST_TEMPLATE.md` including its "How to test" section, squash-merged, and the branch deleted after merge.
+- Branch commits follow Conventional Commits (`type(scope): subject`, imperative, ≤50 characters, optional body of up to three short bullets), made with the `commit` skill, with no Jira key and no tool signatures or co-author trailers. They never reach `main`.
+- PRs are small and focused on one change (about 800 non-generated changed lines at most), titled `REGEN-NNN: summary`, described with `.github/PULL_REQUEST_TEMPLATE.md` including its "How to test" section, squash-merged with the PR title and description as the commit message, and the branch deleted after merge.
 - Two human developers review and approve every PR. AI review (the `pr-review` and `pr-preflight` skills) supplements that review and never approves.
 - Releases follow semantic versioning; the version number lives in `package.json`.
 
