@@ -14,7 +14,7 @@ Defra has GitHub Advanced Security enabled organisation-wide. Maximise these bui
 
 - **Dependency graph** enabled in every repository (foundation for the features below).
 - **Dependabot** enabled to raise PRs for vulnerable or outdated dependencies, with grouped updates to reduce noise (`.github/dependabot.yml`).
-- **Dependency review action** in the PR workflow — fails the check if a PR introduces known-vulnerable packages.
+- **npm audit** — `npm run security-audit` (`npm audit --audit-level=critical`) runs in the pre-commit gate and in the PR workflow (`check-pull-request.yml`), and fails the check when an installed package has a critical advisory.
 - **Security tab** reviewed regularly: Dependabot alerts, code scanning alerts, secret scanning alerts. Teams must resolve open security alerts.
 
 ## Logging
