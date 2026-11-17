@@ -305,7 +305,7 @@ overridden per environment with the corresponding environment variables.
 ## Branching and contributing
 
 Work follows GitHub flow: every change is made on a short-lived branch named after its Jira story
-(`REGEN-NNN-short-slug`), opened as a pull request titled `REGEN-NNN: summary` (imperative, 50
+(`<ticket-id>-<slug>`), opened as a pull request titled `<ticket-id>: summary` (imperative, 50
 characters or fewer including the key; work with no Jira story takes no key), approved by two reviewers (the repository ruleset enforces this) and
 squash-merged into `main`, which is always shippable. The pull request template
 ([.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md)) asks for a "How to test"
@@ -315,8 +315,8 @@ The rules every developer and AI coding tool follows are in [AGENTS.md](AGENTS.m
 DEFRA software development standards adapted for this repo in [doc/rules](doc/rules/). Reusable
 procedures live in [.agents/skills](.agents/skills/) and work in Claude Code and Codex:
 
-- [spec-clarify](.agents/skills/spec-clarify/README.md): turn a Jira story into a spec in `specs/`, the first step of every story
-- [spec-breakdown](.agents/skills/spec-breakdown/README.md): split a large spec into child specs, one pull request each
+- [spec-clarify](.agents/skills/spec-clarify/README.md): turn a Jira story into a spec in `specs/`, the first step of every story; every spec has a Work breakdown, one pull request per slice
+- [slice-deliver](.agents/skills/slice-deliver/README.md): build one slice of a spec and take it to a pull request that is ready for review
 - [pr-preflight](.agents/skills/pr-preflight/README.md): check your own pull request before asking for review
 - [pr-review](.agents/skills/pr-review/README.md): review a colleague's pull request against its story and these standards
 - `commit`: commit finished work with Conventional Commits messages
