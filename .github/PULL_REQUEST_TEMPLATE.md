@@ -1,11 +1,12 @@
-<!-- Title: REGEN-NNN: Short summary (imperative, capitalised, 50 characters including the key, no trailing period). No prefix when the work has no Jira story. See doc/rules/git-workflow.md. -->
+<!-- Title: <ticket-id>: Short summary (imperative, capitalised, 50 characters including the key, no trailing period). No prefix when the work has no Jira story. See doc/rules/git-workflow.md. -->
 
 ## Why
 
 <!-- Why this change is needed and briefly what it does. Not a copy of the story. -->
 
-Jira: REGEN-NNN <!-- or "none" with the reason when the work has no Jira story -->
-Spec: specs/NNN-slug.md <!-- or "none" -->
+Jira: <!-- the ticket id, or "none" with the reason when the work has no Jira story -->
+Spec: <!-- specs/NNNN-<ticket-id>-slug.md, or "none" -->
+Size: <!-- N non-generated changed lines (added plus removed, without `package-lock.json` and Vitest `*.snap` snapshots), against the guide of about 800. See "Keep the PR small" in doc/rules/git-workflow.md for the command -->
 
 ## What changed
 
@@ -37,6 +38,7 @@ Spec: specs/NNN-slug.md <!-- or "none" -->
 
 ## Checklist
 
+- [ ] Size counted and given on the `Size:` line above (about 800 non-generated changed lines is a guide, not a limit)
 - [ ] Full gate run locally: `npm run security-audit && npm run format:check && npm run lint && npm test`
 - [ ] Tests added or updated; coverage at or above 90% and not decreased
 - [ ] Every new form field has server-side validation with the GOV.UK error message and error summary

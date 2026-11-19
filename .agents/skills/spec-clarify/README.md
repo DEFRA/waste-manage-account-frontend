@@ -11,15 +11,15 @@ The agent-facing procedure is in [SKILL.md](SKILL.md); this file is for develope
 - A new story is ready for refinement and needs a spec before development.
 - A bug needs a spec with reproduction steps and acceptance criteria.
 - An idea is still vague and you want it shaped into something actionable, or found to be an
-  epic that needs [spec-breakdown](../spec-breakdown/README.md).
+  epic whose stories each need their own spec.
 
 ## How to start it
 
-| Tool        | How                                                                                      |
-| ----------- | ---------------------------------------------------------------------------------------- |
-| Claude Code | `/spec-clarify REGEN-150 Let a user change the contact email address for their account`  |
-| Codex       | `$spec-clarify` (or pick it from `/skills`), then give the story key and one line        |
-| Either      | Ask in plain words: "write the spec for REGEN-150"; the skill loads from its description |
+| Tool        | How                                                                                          |
+| ----------- | -------------------------------------------------------------------------------------------- |
+| Claude Code | `/spec-clarify <ticket-id> Let a user change the contact email address for their account`    |
+| Codex       | `$spec-clarify` (or pick it from `/skills`), then give the story key and one line            |
+| Either      | Ask in plain words: "write the spec for `<ticket-id>`"; the skill loads from its description |
 
 Have the Jira story text, its comments and the prototype or design pages to hand. The agent
 cannot read Jira or the prototype, so it will ask you to paste what matters and will cite them by
@@ -31,14 +31,17 @@ title, version and date.
    story touches, then asks about the problem, who benefits, scope, acceptance criteria, risks,
    priority and size. Answer one topic at a time; say "don't know" where you don't and it becomes
    an Open Question.
-2. It writes `specs/NNN-slug.md` with the standard sections: metadata table,
+2. It writes `specs/NNNN-<ticket-id>-slug.md` with the standard sections: metadata table,
    Problem/Opportunity, Proposed Solution, Acceptance Criteria, Out of Scope, Decisions, Open
    Questions, Dependencies, Risks, Notes. The acceptance criteria start from the GOV.UK defaults
    in `doc/rules/quality-assurance.md` (prototype match, Design System components, WCAG 2.2 AA,
    supported browsers, server-side validation with the error summary, works without JavaScript
    and CSS, no regression) and name the journeys that must fail.
 3. It shows you the summary and adjusts until the spec says what you meant.
-4. It tells you whether the work fits one pull request or needs splitting with `spec-breakdown`.
+4. It tells you how many pull requests the work needs and writes them in the spec's "Work
+   breakdown" table, one slice each. Every spec has the table, with a single slice when the work
+   fits one pull request. With more than one, it agrees the slices with you first; the spec stays
+   one file.
 
 It never writes code, never touches another spec, and never edits a delivered spec; a change to
 something an earlier spec decided is recorded in the new spec's Decisions, naming that spec.
@@ -53,6 +56,8 @@ spec this skill writes becomes the reference example for the next.
 
 - Open the spec as its own pull request if the work is more than one slice, so the team reviews
   the plan before the code.
-- Run `spec-breakdown` if the spec needs more than one pull request.
 - Implement it, by hand or with an agent; the review skills check the pull request against the
   spec's acceptance criteria and its "How to test" section.
+- Build one slice of the spec's Work breakdown at a time ("build slice 1 of spec NNNN") and open
+  a pull request per slice; [slice-deliver](../slice-deliver/README.md) does both for one slice.
+  Development is complete when every slice is merged.

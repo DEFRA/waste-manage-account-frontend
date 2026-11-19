@@ -18,8 +18,8 @@ The rules below are the always-applicable summary. The full standards, tailored 
 
 Agent-invocable procedures live in `.agents/skills/` in the open Agent Skills format (`SKILL.md`). Codex and GitHub Copilot read that directory natively; Claude Code reads the same skills through the `.claude/skills/` symlinks. When a task matches one of these skills, follow the skill rather than improvising:
 
-- `spec-clarify` — turn a Jira story, bug or idea into a spec in `specs/`, in the repo's format, by asking the author questions; the first step of every story.
-- `spec-breakdown` — split a spec that needs more than one PR into child specs, one per slice, with dependencies and order.
+- `spec-clarify` — turn a Jira story, bug or idea into a spec in `specs/`, in the repo's format, by asking the author questions; the first step of every story. Every spec has a Work breakdown, one slice per PR; work that needs more than one PR is sliced there.
+- `slice-deliver` — deliver one slice of a spec's Work breakdown as a PR ready for review: ralph build, the full gate, a draft PR, `pr-preflight`, CI. It stops and reports when a step fails or needs a decision, continues from that step when run again, and never merges or requests reviewers.
 - `commit` — stage and commit finished work as atomic commits with Conventional Commits messages.
 - `pr-review` — review a colleague's PR against the linked Jira story and these standards. Findings are reported for a human to act on; the AI never approves, requests changes, or comments.
 - `pr-preflight` — pre-flight check of your own PR before requesting human review; may fix mechanical, in-spec blocking findings (new commit, plain push, full gate first).
@@ -69,15 +69,16 @@ Both review skills enforce scope discipline: AI-suggested changes must be in spe
 
 ## Specs
 
-- Specs live in `specs/`, numbered `NNN-slug.md` from the next free number, titled `REGEN-NNN: Title`. A new spec is written with the `spec-clarify` skill, so it has the standard sections, cited sources, and positive and negative acceptance criteria built on the defaults in [quality-assurance.md](doc/rules/quality-assurance.md).
-- A spec whose work would exceed the PR size guide in [git-workflow.md](doc/rules/git-workflow.md), or that mixes concerns (a new journey, a configuration change, a refactor), is split with the `spec-breakdown` skill into child specs before development starts, one PR each.
+- Specs live in `specs/`, named `NNNN-<ticket-id>-slug.md` with the next free four-digit number and titled `<ticket-id>: Title`, where `<ticket-id>` is the story's Jira key (a spec that already exists is never renamed: the delivered `001-defra-id-implementation-plan.md` keeps its name). A new spec is written with the `spec-clarify` skill, so it has the standard sections, cited sources, and positive and negative acceptance criteria built on the defaults in [quality-assurance.md](doc/rules/quality-assurance.md).
+- A spec whose work would exceed the PR size guide in [git-workflow.md](doc/rules/git-workflow.md), or that mixes concerns (a new journey, a configuration change, a refactor), stays one spec: `spec-clarify` slices it in the spec's "Work breakdown" table before development starts, one PR per slice, built in order. Every spec has that table, with a single slice when the work is one PR.
 - A delivered spec (its work merged, for example `specs/001-defra-id-implementation-plan.md`) is a record of what was built and why — never edit it. When new work changes something it decided, record the change in the new spec and name the spec it supersedes.
 
 ## Git workflow
 
-- All work happens on a branch named `REGEN-NNN-short-slug` (Dependabot branches and work with no Jira story are exempt) — never commit directly to `main`. Main is always shippable.
+- All work happens on a branch named `<ticket-id>-<slug>`, or `<ticket-id>-<slug>-slice-<n>` for one slice of a spec, slice 1 included (Dependabot branches and work with no Jira story are exempt) — never commit directly to `main`. Main is always shippable.
+- `<ticket-id>` is the story's Jira key exactly as Jira gives it, whatever its project: take it from the spec, whose title and file name carry it, and never write a project prefix into a rule, a skill or a template.
 - Branch commits follow Conventional Commits (`type(scope): subject`, imperative, ≤50 characters, optional body of up to three short bullets), made with the `commit` skill, with no Jira key and no tool signatures or co-author trailers. They never reach `main`.
-- PRs are small and focused on one change (about 800 non-generated changed lines at most), titled `REGEN-NNN: summary` (no prefix when the work has no Jira story), described with `.github/PULL_REQUEST_TEMPLATE.md` including its "How to test" section, squash-merged with the PR title and description as the commit message, and the branch deleted after merge.
+- PRs are small and focused on one change (a guide of about 800 non-generated changed lines, not a limit), titled `<ticket-id>: summary` (no prefix when the work has no Jira story), described with `.github/PULL_REQUEST_TEMPLATE.md` including its "How to test" section, squash-merged with the PR title and description as the commit message, and the branch deleted after merge.
 - Two human developers review and approve every PR. AI review (the `pr-review` and `pr-preflight` skills) supplements that review and never approves.
 - Releases follow semantic versioning: the CDP build action tags and versions each merge to `main`, and the release version is not kept in `package.json`.
 

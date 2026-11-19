@@ -31,8 +31,8 @@ compares the PR author with `gh api user` and stops if they differ.
 ## What happens
 
 1. It confirms the PR is yours, fetches metadata, diff and CI status, counts generated files and
-   compares the PR with the size guide in `doc/rules/git-workflow.md`. An over-budget PR is
-   reported for a manual split, never split for you.
+   compares the PR with the size guide in `doc/rules/git-workflow.md`. The guide is not a
+   limit: an over-budget PR is noted with a suggested split point, and is never split for you.
 2. It reads the description and the story, lists the acceptance criteria, applies the review
    lenses, maps each criterion to its evidence, and classifies and tags every finding as
    pr-review does. Because it owns the branch it can run the gate, so blocking findings are

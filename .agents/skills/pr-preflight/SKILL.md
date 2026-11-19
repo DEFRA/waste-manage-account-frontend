@@ -66,12 +66,12 @@ otherwise work through them in order.
    `gh pr checks`. Count the generated files (lock files such as
    `package-lock.json`, Vitest snapshots, anything marked `linguist-generated`
    in `.gitattributes`) and the non-generated changed lines, and compare with
-   the size guide in `doc/rules/git-workflow.md`. An over-budget PR is a
-   blocking PR hygiene finding that needs a manual split — do not try to fix
-   it.
+   the size guide in `doc/rules/git-workflow.md`. The guide is not a limit: an
+   over-budget PR is a non-blocking PR hygiene finding with a suggested split
+   point — never split it yourself.
 2. **Establish the spec.** Read the PR description and linked Jira story, and
    list the acceptance criteria for step 5. When the work has a Jira story, a
-   title without the `REGEN-NNN: ` prefix or a body without the story key is
+   title without the `<ticket-id>: ` prefix or a body without the story key is
    itself a finding (`doc/rules/git-workflow.md`); work with no story needs
    neither and says `Jira: none` with the reason.
 3. **Tiny-PR shortcut.** Under ~30 changed lines across at most 2 files:
@@ -148,7 +148,7 @@ explains what is wrong and why it needs a decision.
 ### PR <number>: <title>  (preflight)
 <base> → <head>  •  <files> files (+<adds>/−<dels>, <n> generated)  •  CI: <passing/failing>
 Spec: <Jira ref (and spec file, if any) | "no Jira story — <reason>" | "no Jira key — add one before requesting review">
-Size: <within budget | over budget: <n> non-generated lines — split at <boundary> before requesting review>
+Size: <within budget | over budget: <n> non-generated lines — suggest splitting at <boundary>>
 Reviewed: <n> of <m> files in full  (skimmed: <files — reason>; not reviewed: <lock files, generated assets — reason>)
 Lenses: <applied>  (scoped out: <lens — reason>)
 <Pushed fix commit <short-sha> for <N> finding(s). — omit if nothing was fixed>
